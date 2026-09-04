@@ -1,5 +1,8 @@
 package com.htmlism.magicite
 
+/**
+  * Used to transform the output of a single neuron
+  */
 enum Activation:
   case Identity
   case Relu
