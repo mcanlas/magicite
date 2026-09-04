@@ -10,10 +10,9 @@ enum Activation:
   case Sigmoid
 
   /**
-    * Activations remain generic because [[Scalar]] explicitly includes the ordering and transcendental operations they
-    * require.
+    * Activations remain generic over real-valued scalar types.
     */
-  def apply[A](x: A)(using scalar: Scalar[A]): A =
+  def apply[A](x: A)(using scalar: RealScalar[A]): A =
     this match
       case Identity => x
       case Relu     => scalar.maximum(scalar.zero, x)
