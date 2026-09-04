@@ -6,12 +6,14 @@ package com.htmlism.magicite
   * An M x N matrix maps an N-value input vector to an M-value output vector. For example, a 3 x 2 matrix maps two input
   * features to three neuron values
   *
+  * @tparam A
+  *   The scalar type stored in each matrix cell
   * @tparam M
   *   The output dimension, with one coordinate for each matrix row
   * @tparam N
   *   The input dimension, with one coordinate for each matrix column
   */
-final case class Matrix[M, N](values: Array[Double])(using
+final case class Matrix[A, M, N](values: Array[A])(using
     rowDimension: Dimension[M],
     columnDimension: Dimension[N]
 ):
@@ -37,17 +39,15 @@ final case class Matrix[M, N](values: Array[Double])(using
     * @return
     *   an M-length vector where `M == rows`
     */
-  def multiply(input: Vec[N]): Vec[M] =
+  def multiply(input: Vec[A, N])(using scalar: Scalar[A]): Vec[A, M] =
     require(
       columns == input.size,
       s"matrix has $columns columns but input has ${input.size} values"
     )
 
-    Vec[M](
-      Array.tabulate(rows): r =>
-        val rowOffset = r * columns
+    Vec[A, M](scalar.tabulate(rows): r =>
+      val rowOffset = r * columns
 
-        (0 until columns)
-          .foldLeft(0.0): (sum, c) =>
-            sum + values(rowOffset + c) * input.values(c)
-    )
+      (0 until columns)
+        .foldLeft(scalar.zero): (sum, c) =>
+          scalar.add(sum, scalar.multiply(values(rowOffset + c), input.values(c))))

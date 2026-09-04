@@ -26,3 +26,10 @@ object ActivationSuite extends FunSuite:
       Activation.Sigmoid(-10.0) > 0.0,
       Activation.Sigmoid(10.0) < 1.0
     )
+
+  test("activations support Float scalars"):
+    expect.all(
+      Activation.Relu(-2.5f) == 0.0f,
+      Activation.Tanh(0.0f) == 0.0f,
+      Activation.Sigmoid(0.0f) == 0.5f
+    )

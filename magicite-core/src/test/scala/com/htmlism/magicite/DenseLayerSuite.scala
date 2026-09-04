@@ -9,8 +9,8 @@ object DenseLayerSuite extends FunSuite:
   test("accepts one bias for each output neuron"):
     val layer =
       DenseLayer(
-        weights    = Matrix[Two, Three](Array.fill(6)(0.0)),
-        biases     = Vec[Two](Array(0.0, 0.0)),
+        weights    = Matrix[Double, Two, Three](Array.fill(6)(0.0)),
+        biases     = Vec[Double, Two](Array(0.0, 0.0)),
         activation = Activation.Tanh
       )
 

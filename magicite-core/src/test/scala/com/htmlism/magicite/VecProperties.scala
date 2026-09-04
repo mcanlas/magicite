@@ -9,15 +9,15 @@ object VecProperties extends SimpleIOSuite with Checkers:
   import TestDimensions.*
   import TestDimensions.given
 
-  private given Show[Vec[Three]] =
+  private given Show[Vec[Double, Three]] =
     Show.show(vector => vector.values.mkString("Vec(", ", ", ")"))
 
   private val vectorOfThree =
     Gen
       .listOfN(3, Gen.choose(-100.0, 100.0))
-      .map(values => Vec[Three](values.toArray))
+      .map(values => Vec[Double, Three](values.toArray))
 
-  private val vectorPair: Gen[(Vec[Three], Vec[Three])] =
+  private val vectorPair: Gen[(Vec[Double, Three], Vec[Double, Three])] =
     for
       left  <- vectorOfThree
       right <- vectorOfThree

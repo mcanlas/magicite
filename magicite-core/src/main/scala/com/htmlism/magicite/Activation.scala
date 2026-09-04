@@ -9,9 +9,13 @@ enum Activation:
   case Tanh
   case Sigmoid
 
-  def apply(x: Double): Double =
+  /**
+    * Activations remain generic because [[Scalar]] explicitly includes the ordering and transcendental operations they
+    * require.
+    */
+  def apply[A](x: A)(using scalar: Scalar[A]): A =
     this match
       case Identity => x
-      case Relu     => Math.max(0.0, x)
-      case Tanh     => Math.tanh(x)
-      case Sigmoid  => 1.0 / (1.0 + Math.exp(-x))
+      case Relu     => scalar.maximum(scalar.zero, x)
+      case Tanh     => scalar.tanh(x)
+      case Sigmoid  => scalar.divide(scalar.one, scalar.add(scalar.one, scalar.exp(scalar.negate(x))))
