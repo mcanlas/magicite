@@ -6,40 +6,34 @@ import weaver.*
 import weaver.scalacheck.Checkers
 
 object MatrixProperties extends SimpleIOSuite with Checkers:
-  private given Show[VectorN] =
-    Show.show(_.values.mkString("VectorN(", ", ", ")"))
+  import TestDimensions.*
+  import TestDimensions.given
 
-  private given Show[Matrix] =
+  private given Show[Vec[Three]] =
+    Show.show(_.values.mkString("Vec(", ", ", ")"))
+
+  private given Show[Matrix[Two, Three]] =
     Show.show(m => s"Matrix(${m.rows}, ${m.columns}, ${m.values.mkString("[", ", ", "]")})")
 
-  private def matrixOfSize(rows: Int, columns: Int) =
+  private val matrixOfTwoByThree =
     Gen
-      .listOfN(rows * columns, Gen.choose(-10.0, 10.0))
-      .map(values => Matrix(rows, columns, values.toArray))
+      .listOfN(6, Gen.choose(-10.0, 10.0))
+      .map(values => Matrix[Two, Three](values.toArray))
 
-  private def vectorOfSize(size: Int) =
+  private val vectorOfThree =
     Gen
-      .listOfN(size, Gen.choose(-10.0, 10.0))
-      .map(values => VectorN(values.toArray))
+      .listOfN(3, Gen.choose(-10.0, 10.0))
+      .map(values => Vec[Three](values.toArray))
 
   private def approximatelyEqual(left: Double, right: Double) =
     math.abs(left - right) <= 1e-10
 
-  private val matrixAndVectorPairs: Gen[(Matrix, VectorN, VectorN)] =
+  private val matrixAndVectorPairs: Gen[(Matrix[Two, Three], Vec[Three], Vec[Three])] =
     for
-      rows    <- Gen.choose(0, 8)
-      columns <- Gen.choose(0, 8)
-      matrix  <- matrixOfSize(rows, columns)
-      left    <- vectorOfSize(columns)
-      right   <- vectorOfSize(columns)
+      matrix <- matrixOfTwoByThree
+      left   <- vectorOfThree
+      right  <- vectorOfThree
     yield (matrix, left, right)
-
-  private val dimensionsAndVector: Gen[(Int, Int, VectorN)] =
-    for
-      rows    <- Gen.choose(0, 8)
-      columns <- Gen.choose(0, 8)
-      input   <- vectorOfSize(columns)
-    yield (rows, columns, input)
 
   test("multiplication distributes over vector addition"):
     forall(matrixAndVectorPairs): (matrix, left, right) =>
@@ -50,7 +44,7 @@ object MatrixProperties extends SimpleIOSuite with Checkers:
         expect(approximatelyEqual(actual, expected))
 
   test("a zero matrix maps every compatible vector to zero"):
-    forall(dimensionsAndVector): (rows, columns, input) =>
-      val output = Matrix(rows, columns, Array.fill(rows * columns)(0.0)).multiply(input)
+    forall(vectorOfThree): input =>
+      val output = Matrix[Two, Three](Array.fill(6)(0.0)).multiply(input)
 
-      expect.eql(Vector.fill(rows)(0.0), output.values.toVector)
+      expect.eql(Vector.fill(2)(0.0), output.values.toVector)
