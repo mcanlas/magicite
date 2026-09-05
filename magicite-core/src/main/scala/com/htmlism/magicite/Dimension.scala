@@ -13,6 +13,16 @@ trait Dimension[A]:
   def size: Int
 
 object Dimension:
+  sealed trait D8
+  sealed trait D16
+  sealed trait D32
+  sealed trait D64
+
+  given d8: Dimension[D8]   = Dimension(8)
+  given d16: Dimension[D16] = Dimension(16)
+  given d32: Dimension[D32] = Dimension(32)
+  given d64: Dimension[D64] = Dimension(64)
+
   /**
     * Creates size evidence for a phantom shape tag.
     *
