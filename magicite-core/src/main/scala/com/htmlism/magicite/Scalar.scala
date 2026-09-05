@@ -14,6 +14,13 @@ trait Scalar[A]:
 
   def tabulate(size: Int)(f: Int => A): Array[A]
 
+  extension (left: A)
+    infix def +(right: A): A =
+      add(left, right)
+
+    infix def *(right: A): A =
+      multiply(left, right)
+
 object Scalar:
   given double: RealScalar[Double] with
     def zero: Double                                         = 0.0

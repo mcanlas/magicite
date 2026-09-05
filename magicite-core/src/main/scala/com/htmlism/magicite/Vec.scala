@@ -23,7 +23,7 @@ final case class Vec[A, D](values: Array[A])(using dimension: Dimension[D]):
 
     val result = values.clone
 
-    result.indices.foreach(i => result(i) = scalar.add(values(i), that.values(i)))
+    result.indices.foreach(i => result(i) = values(i) + that.values(i))
 
     Vec[A, D](result)
 
@@ -33,7 +33,7 @@ final case class Vec[A, D](values: Array[A])(using dimension: Dimension[D]):
 
     values
       .indices
-      .foldLeft(scalar.zero)((sum, i) => scalar.add(sum, scalar.multiply(values(i), that.values(i))))
+      .foldLeft(scalar.zero)((sum, i) => sum + values(i) * that.values(i))
 
   /** Applies an activation to each neuron value */
   def map(f: A => A): Vec[A, D] =

@@ -10,3 +10,7 @@ trait RealScalar[A] extends Scalar[A]:
   def exp(value: A): A
   def tanh(value: A): A
   def sqrt(value: A): A
+
+  extension (value: Double)
+    def toScalar: A =
+      fromDouble(value)

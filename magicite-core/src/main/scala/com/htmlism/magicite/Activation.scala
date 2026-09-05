@@ -17,4 +17,4 @@ enum Activation:
       case Identity => x
       case Relu     => scalar.maximum(scalar.zero, x)
       case Tanh     => scalar.tanh(x)
-      case Sigmoid  => scalar.divide(scalar.one, scalar.add(scalar.one, scalar.exp(scalar.negate(x))))
+      case Sigmoid  => scalar.divide(scalar.one, scalar.one + scalar.exp(scalar.negate(x)))

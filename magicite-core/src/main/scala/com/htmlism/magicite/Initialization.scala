@@ -9,7 +9,7 @@ enum Initialization:
 
     this match
       case Xavier =>
-        scalar.sqrt(scalar.divide(scalar.fromDouble(6.0), scalar.fromDouble((fanIn + fanOut).toDouble)))
+        scalar.sqrt(scalar.divide(6.0.toScalar, (fanIn + fanOut).toDouble.toScalar))
 
   /** Draws one Xavier-uniform weight using the supplied layer dimensions. */
   def weight[A](fanIn: Int, fanOut: Int)(using scalar: RealScalar[A]): Rng[A] =
@@ -20,7 +20,4 @@ enum Initialization:
         Rng
           .nextDouble
           .map: sample =>
-            scalar.multiply(
-              scalar.add(scalar.multiply(scalar.fromDouble(sample), scalar.fromDouble(2.0)), scalar.negate(scalar.one)),
-              xavierLimit
-            )
+            (sample.toScalar * 2.0.toScalar + scalar.negate(scalar.one)) * xavierLimit

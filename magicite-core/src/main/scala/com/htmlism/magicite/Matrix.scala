@@ -50,4 +50,4 @@ final case class Matrix[A, M, N](values: Array[A])(using
 
       (0 until columns)
         .foldLeft(scalar.zero): (sum, c) =>
-          scalar.add(sum, scalar.multiply(values(rowOffset + c), input.values(c))))
+          sum + values(rowOffset + c) * input.values(c))
