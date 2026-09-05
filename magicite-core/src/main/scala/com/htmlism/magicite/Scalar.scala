@@ -12,6 +12,7 @@ trait Scalar[A]:
   def add(left: A, right: A): A
   def multiply(left: A, right: A): A
 
+  /** Creates a specialized scalar array by computing one value for each index */
   def tabulate(size: Int)(f: Int => A): Array[A]
 
   extension (left: A)

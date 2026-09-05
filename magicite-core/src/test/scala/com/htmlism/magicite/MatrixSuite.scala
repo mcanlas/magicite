@@ -25,3 +25,21 @@ object MatrixSuite extends FunSuite:
     val output = matrix.multiply(Vec[Float, Three](Array(10.0f, 20.0f, 30.0f)))
 
     expect.eql(Vector(140.0f, 320.0f), output.values.toVector)
+
+  test("initializes every matrix value with sequential Xavier draws"):
+    val actual =
+      Matrix
+        .initialize[Double, Two, Three](Initialization.Xavier)
+        .runA(Random(123))
+        .value
+
+    val expectedRandom = Random(123)
+    val expected       =
+      Array.tabulate(6): _ =>
+        Initialization
+          .Xavier
+          .weight[Double](fanIn = 3, fanOut = 2)
+          .runA(expectedRandom)
+          .value
+
+    expect.eql(expected.toVector, actual.values.toVector)

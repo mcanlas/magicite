@@ -11,7 +11,7 @@ enum Initialization:
       case Xavier =>
         scalar.sqrt(6.0.toScalar / (fanIn + fanOut).toDouble.toScalar)
 
-  /** Draws one Xavier-uniform weight using the supplied layer dimensions. */
+  /** Draws one Xavier-uniform weight using the supplied layer dimensions */
   def weight[A](fanIn: Int, fanOut: Int)(using scalar: RealScalar[A]): Rng[A] =
     this match
       case Xavier =>

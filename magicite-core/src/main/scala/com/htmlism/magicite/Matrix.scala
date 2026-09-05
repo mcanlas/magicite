@@ -1,5 +1,7 @@
 package com.htmlism.magicite
 
+import cats.syntax.all.*
+
 /**
   * A row-major matrix with each row's values stored before the next row
   *
@@ -51,3 +53,22 @@ final case class Matrix[A, M, N](values: Array[A])(using
       (0 until columns)
         .foldLeft(scalar.zero): (sum, c) =>
           sum + values(rowOffset + c) * input.values(c))
+
+object Matrix:
+  /** Draws row-major matrix values sequentially from the supplied initializer */
+  def initialize[A, M, N](initialization: Initialization)(using
+      rowDimension: Dimension[M],
+      columnDimension: Dimension[N],
+      scalar: RealScalar[A]
+  ): Rng[Matrix[A, M, N]] =
+    val nextWeight =
+      initialization.weight[A](fanIn = columnDimension.size, fanOut = rowDimension.size)
+
+    for
+      // not the same as traverse (which is xs map then sequence)
+      xs <- Vector
+        .fill(rowDimension.size * columnDimension.size)(nextWeight)
+        .sequence
+    yield
+      // xs here is being used for its index lookup (hence vector)
+      Matrix[A, M, N](scalar.tabulate(xs.size)(xs))

@@ -1,14 +1,20 @@
 package com.htmlism.magicite
 
-/** Operations available for real-valued network parameters and activations. */
+/** Operations available for real-valued network parameters and activations */
 trait RealScalar[A] extends Scalar[A]:
   def one: A
   def fromDouble(value: Double): A
   def negate(value: A): A
   def divide(left: A, right: A): A
   def maximum(left: A, right: A): A
+
+  /** Computes the natural exponential, e raised to `value` */
   def exp(value: A): A
+
+  /** Computes the hyperbolic tangent of `value` */
   def tanh(value: A): A
+
+  /** Computes the non-negative square root of `value` */
   def sqrt(value: A): A
 
   extension (left: A)
