@@ -11,6 +11,16 @@ trait RealScalar[A] extends Scalar[A]:
   def tanh(value: A): A
   def sqrt(value: A): A
 
+  extension (left: A)
+    infix def -(right: A): A =
+      add(left, negate(right))
+
+    infix def /(right: A): A =
+      divide(left, right)
+
+    def unary_- : A =
+      negate(left)
+
   extension (value: Double)
     def toScalar: A =
       fromDouble(value)
