@@ -19,3 +19,17 @@ final case class DenseLayer[A, M, N](
     biases.size == weights.rows,
     s"layer has ${weights.rows} output rows but ${biases.size} biases"
   )
+
+object DenseLayer:
+  /** Draws weights and sets biases to zero */
+  def initialize[A, M, N](initialization: Initialization, activation: Activation)(using
+      rowDimension: Dimension[M],
+      columnDimension: Dimension[N],
+      scalar: RealScalar[A]
+  ): Rng[DenseLayer[A, M, N]] =
+    for weights <- Matrix.initialize[A, M, N](initialization)
+    yield DenseLayer(
+      weights    = weights,
+      biases     = Vec[A, M](scalar.tabulate(rowDimension.size)(_ => scalar.zero)),
+      activation = activation
+    )
