@@ -35,7 +35,9 @@ object Scalar:
     def negate(value: Double): Double                        = -value
     def divide(left: Double, right: Double): Double          = left / right
     def maximum(left: Double, right: Double): Double         = Math.max(left, right)
+    def isPositive(value: Double): Boolean                   = value > 0.0
     def exp(value: Double): Double                           = Math.exp(value)
+    def log(value: Double): Double                           = Math.log(value)
     def tanh(value: Double): Double                          = Math.tanh(value)
     def sqrt(value: Double): Double                          = Math.sqrt(value)
     def tabulate(size: Int)(f: Int => Double): Array[Double] = Array.tabulate(size)(f)
@@ -49,7 +51,9 @@ object Scalar:
     def negate(value: Float): Float                        = -value
     def divide(left: Float, right: Float): Float           = left / right
     def maximum(left: Float, right: Float): Float          = Math.max(left, right)
+    def isPositive(value: Float): Boolean                  = value > 0.0f
     def exp(value: Float): Float                           = Math.exp(value.toDouble).toFloat
+    def log(value: Float): Float                           = Math.log(value.toDouble).toFloat
     def tanh(value: Float): Float                          = Math.tanh(value.toDouble).toFloat
     def sqrt(value: Float): Float                          = Math.sqrt(value.toDouble).toFloat
     def tabulate(size: Int)(f: Int => Float): Array[Float] = Array.tabulate(size)(f)

@@ -28,3 +28,20 @@ enum Activation:
       case Relu     => scalar.maximum(scalar.zero, x)
       case Tanh     => scalar.tanh(x)
       case Sigmoid  => scalar.one / (scalar.one + scalar.exp(-x))
+
+  /**
+    * Computes this activation's derivative for one neuron
+    *
+    * @tparam A
+    *   The real-valued scalar type of the cached values and derivative
+    * @param preActivation
+    *   The cached affine output before this activation
+    * @param output
+    *   The cached result after this activation
+    */
+  def derivative[A: RealScalar as scalar](preActivation: A, output: A): A =
+    this match
+      case Identity => scalar.one
+      case Relu     => if scalar.isPositive(preActivation) then scalar.one else scalar.zero
+      case Tanh     => scalar.one - output * output
+      case Sigmoid  => output * (scalar.one - output)

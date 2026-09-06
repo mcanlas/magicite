@@ -12,9 +12,13 @@ trait RealScalar[A] extends Scalar[A]:
   def negate(value: A): A
   def divide(left: A, right: A): A
   def maximum(left: A, right: A): A
+  def isPositive(value: A): Boolean
 
   /** Computes the natural exponential, e raised to `value` */
   def exp(value: A): A
+
+  /** Computes the natural logarithm of `value` */
+  def log(value: A): A
 
   /** Computes the hyperbolic tangent of `value` */
   def tanh(value: A): A

@@ -33,3 +33,16 @@ object ActivationSuite extends FunSuite:
       Activation.Tanh(0.0f) == 0.0f,
       Activation.Sigmoid(0.0f) == 0.5f
     )
+
+  test("derivatives use cached pre-activation and output values"):
+    expect.all(
+      Activation.Identity.derivative(100.0, -100.0) == 1.0,
+      Activation.Relu.derivative(-1.0, 0.0) == 0.0,
+      Activation.Relu.derivative(0.0, 0.0) == 0.0,
+      Activation.Relu.derivative(1.0, 1.0) == 1.0,
+      Activation.Tanh.derivative(0.0, 0.5) == 0.75,
+      Activation.Sigmoid.derivative(0.0, 0.25) == 0.1875
+    )
+
+  test("activation derivatives support Float scalars"):
+    expect.eql(0.25f, Activation.Tanh.derivative(0.0f, 0.8660254f))
