@@ -7,17 +7,26 @@ import com.htmlism.magicite.*
 /** A deterministic XOR experiment built from Magicite's core network primitives */
 object Xor:
   /** The two-feature dimension of an XOR truth-table row */
-  sealed trait XorInputs
+  sealed trait XorOperands
 
-  /** The two-value dimension tag used by the experiment's hidden layer */
-  sealed trait D2
+  /** The four-value dimension tag used by the experiment's hidden layer */
+  sealed trait D4
 
   /** The one-probability dimension of a Boolean result */
   sealed trait BooleanOutput
 
-  given Dimension[XorInputs]     = Dimension(2)
-  given Dimension[D2]            = Dimension(2)
+  given Dimension[XorOperands]   = Dimension(2)
+  given Dimension[D4]            = Dimension(4)
   given Dimension[BooleanOutput] = Dimension(1)
+
+  /**
+    * The XOR experiment's `XorOperands → D4 → BooleanOutput` model shape
+    *
+    * @tparam A
+    *   The real-valued scalar type used by the model parameters and values
+    */
+  type Model[A] =
+    Network.WithHidden[A, XorOperands, D4, BooleanOutput]
 
   /**
     * One row of XOR's canonical truth table
@@ -36,16 +45,19 @@ object Xor:
   )
 
   /**
-    * The result of training the XOR network for whole epochs
+    * The result of training an XOR network for whole epochs
+    *
+    * @tparam A
+    *   The real-valued scalar type used by the model parameters, losses, and predictions
     *
     * @param network
     *   The network after its final parameter update
     * @param epochLosses
     *   Mean binary cross-entropy for each epoch before that epoch's updates
     */
-  final case class TrainingResult(
-      network: Network.WithHidden[Double, XorInputs, D2, BooleanOutput],
-      epochLosses: Vector[Double]
+  final case class TrainingResult[A](
+      network: Model[A],
+      epochLosses: Vector[A]
   )
 
   /** The four XOR truth-table rows in a fixed training order */
@@ -60,41 +72,55 @@ object Xor:
   /**
     * Encodes two Boolean XOR inputs as the network's two numeric features
     *
+    * @tparam A
+    *   The real-valued scalar type used by the encoded features
+    *
     * @param left
     *   The left Boolean input
     * @param right
     *   The right Boolean input
     */
-  def encodeInputs(left: Boolean, right: Boolean): Vec[Double, XorInputs] =
-    Vec[Double, XorInputs](Array(encodeBoolean(left), encodeBoolean(right)))
+  def encodeInputs[A: RealScalar as scalar](left: Boolean, right: Boolean): Vec[A, XorOperands] =
+    Vec[A, XorOperands](scalar.tabulate(2):
+      case 0 => encodeBoolean(left)
+      case _ => encodeBoolean(right))
 
   /**
     * Encodes a Boolean XOR result as the binary cross-entropy target
     *
+    * @tparam A
+    *   The real-valued scalar type used by the encoded target
+    *
     * @param expected
     *   The expected Boolean XOR result
     */
-  def encodeTarget(expected: Boolean): Double =
+  def encodeTarget[A: RealScalar](expected: Boolean): A =
     encodeBoolean(expected)
 
   /**
     * Decodes a sigmoid probability as a Boolean prediction using a one-half threshold
     *
+    * @tparam A
+    *   The real-valued scalar type used by the sigmoid probability
+    *
     * @param probability
     *   The sigmoid probability of a true Boolean result
     */
-  def decodePrediction(probability: Double): Boolean =
-    probability >= 0.5
+  def decodePrediction[A: RealScalar as scalar](probability: A): Boolean =
+    !scalar.isPositive(scalar.fromDouble(0.5) - probability)
 
   /**
-    * Initializes the experiment's `2 → 2 → 1` network from a reproducible seed
+    * Initializes the experiment's `2 → 4 → 1` network from a reproducible seed
+    *
+    * @tparam A
+    *   The real-valued scalar type used by the initialized parameters
     *
     * @param seed
     *   The seed used for Xavier weight draws
     */
-  def initialize(seed: Long): Network.WithHidden[Double, XorInputs, D2, BooleanOutput] =
+  def initialize[A: RealScalar](seed: Long): Model[A] =
     Network
-      .withHidden[Double, XorInputs, D2, BooleanOutput](
+      .withHidden[A, XorOperands, D4, BooleanOutput](
         initialization   = Initialization.Xavier,
         hiddenLayerCount = 1,
         hiddenActivation = Activation.Tanh,
@@ -106,6 +132,9 @@ object Xor:
   /**
     * Runs one stochastic-gradient update for one XOR truth-table row
     *
+    * @tparam A
+    *   The real-valued scalar type used by the network, loss, and learning rate
+    *
     * @param network
     *   The network before this row's update
     * @param row
@@ -115,16 +144,16 @@ object Xor:
     * @return
     *   The updated network and this row's binary cross-entropy loss
     */
-  def trainRow(
-      network: Network.WithHidden[Double, XorInputs, D2, BooleanOutput],
+  def trainRow[A: RealScalar as scalar](
+      network: Model[A],
       row: TruthTableRow,
-      learningRate: Double
-  ): (Network.WithHidden[Double, XorInputs, D2, BooleanOutput], Double) =
+      learningRate: A
+  ): (Model[A], A) =
     val forwardPass =
-      network.forward(encodeInputs(row.left, row.right))
+      network.forward(encodeInputs[A](row.left, row.right))
 
     val target =
-      encodeTarget(row.expected)
+      encodeTarget[A](row.expected)
 
     val prediction =
       forwardPass.prediction.values(0)
@@ -138,13 +167,16 @@ object Xor:
     val backwardPass =
       network.backwardFromOutputPreActivation(
         forwardPass,
-        Vec[Double, BooleanOutput](Array(outputGradient))
+        Vec[A, BooleanOutput](scalar.tabulate(1)(_ => outputGradient))
       )
 
     network.updated(backwardPass, learningRate) -> loss
 
   /**
     * Trains the network for fixed-order, one-row gradient-descent epochs
+    *
+    * @tparam A
+    *   The real-valued scalar type used by the network, losses, and learning rate
     *
     * @param initialNetwork
     *   The network used before the first training update
@@ -153,48 +185,34 @@ object Xor:
     * @param learningRate
     *   The positive scale of each truth-table row's gradient-descent step
     */
-  def train(
-      initialNetwork: Network.WithHidden[Double, XorInputs, D2, BooleanOutput],
+  def train[A: RealScalar as scalar](
+      initialNetwork: Model[A],
       epochCount: Int,
-      learningRate: Double
-  ): TrainingResult =
+      learningRate: A
+  ): TrainingResult[A] =
     require(epochCount > 0, s"epoch count must be positive, but was $epochCount")
-    require(learningRate > 0.0, s"learning rate must be positive, but was $learningRate")
+    require(scalar.isPositive(learningRate), s"learning rate must be positive")
 
     val (network, epochLosses) =
-      (0 until epochCount).foldLeft(initialNetwork -> Vector.empty[Double]):
+      (0 until epochCount).foldLeft(initialNetwork -> Vector.empty[A]):
         case ((currentNetwork, losses), _) =>
           val (updatedNetwork, totalLoss) =
-            truthTable.foldLeft(currentNetwork -> 0.0):
+            truthTable.foldLeft(currentNetwork -> scalar.zero):
               case ((network, loss), row) =>
                 val (updatedNetwork, rowLoss) =
                   trainRow(network, row, learningRate)
 
                 updatedNetwork -> (loss + rowLoss)
 
-          updatedNetwork -> (losses :+ totalLoss / truthTable.size)
+          updatedNetwork -> (losses :+ totalLoss / scalar.fromDouble(truthTable.size.toDouble))
 
     TrainingResult(network, epochLosses)
 
   /**
     * Produces the sigmoid probability for two Boolean XOR inputs
     *
-    * @param network
-    *   The trained or untrained XOR network to evaluate
-    * @param left
-    *   The left Boolean input
-    * @param right
-    *   The right Boolean input
-    */
-  def predictProbability(
-      network: Network.WithHidden[Double, XorInputs, D2, BooleanOutput],
-      left: Boolean,
-      right: Boolean
-  ): Double =
-    network.forward(encodeInputs(left, right)).prediction.values(0)
-
-  /**
-    * Produces a Boolean XOR prediction from two Boolean inputs
+    * @tparam A
+    *   The real-valued scalar type used by the network and probability
     *
     * @param network
     *   The trained or untrained XOR network to evaluate
@@ -203,12 +221,32 @@ object Xor:
     * @param right
     *   The right Boolean input
     */
-  def predict(
-      network: Network.WithHidden[Double, XorInputs, D2, BooleanOutput],
+  def predictProbability[A: RealScalar](
+      network: Model[A],
+      left: Boolean,
+      right: Boolean
+  ): A =
+    network.forward(encodeInputs[A](left, right)).prediction.values(0)
+
+  /**
+    * Produces a Boolean XOR prediction from two Boolean inputs
+    *
+    * @tparam A
+    *   The real-valued scalar type used by the network
+    *
+    * @param network
+    *   The trained or untrained XOR network to evaluate
+    * @param left
+    *   The left Boolean input
+    * @param right
+    *   The right Boolean input
+    */
+  def predict[A: RealScalar](
+      network: Model[A],
       left: Boolean,
       right: Boolean
   ): Boolean =
     decodePrediction(predictProbability(network, left, right))
 
-  private def encodeBoolean(value: Boolean): Double =
-    if value then 1.0 else 0.0
+  private def encodeBoolean[A: RealScalar](value: Boolean): A =
+    if value then 1.0.toScalar else 0.0.toScalar
