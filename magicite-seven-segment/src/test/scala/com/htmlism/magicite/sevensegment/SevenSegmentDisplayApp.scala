@@ -12,7 +12,7 @@ object SevenSegmentDisplayApp:
       SevenSegment
         .canonicalDigits
         .map:
-          _.segments.toArray
+          _.segments.toVector.toArray
         .toArray
 
     printDisplays(inputs)

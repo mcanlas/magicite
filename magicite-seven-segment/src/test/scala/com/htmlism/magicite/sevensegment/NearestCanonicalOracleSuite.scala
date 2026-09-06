@@ -16,8 +16,8 @@ object NearestCanonicalOracleSuite extends FunSuite:
     expect(
       NearestCanonicalOracle
         .hammingDistance(
-          Vector(1, 1, 1, 1, 1, 1, 1),
-          Vector(0, 0, 0, 0, 0, 0, 0)
+          SegmentState(1, 1, 1, 1, 1, 1, 1),
+          SegmentState(0, 0, 0, 0, 0, 0, 0)
         )
         .toInt == 7
     )
@@ -70,7 +70,7 @@ object NearestCanonicalOracleSuite extends FunSuite:
   test("a one-bit flip from digit 1 that forms digit 7 is recognized as digit 7"):
     // digit 1 = Vector(0, 1, 1, 0, 0, 0, 0), flip the top segment on
     val flipped =
-      Vector(1, 1, 1, 0, 0, 0, 0)
+      SegmentState(1, 1, 1, 0, 0, 0, 0)
 
     // that pattern is canonical digit 7; the oracle should return 7 since that's
     // the exact match (distance 0) rather than 1 (distance 1)
@@ -104,7 +104,7 @@ object NearestCanonicalOracleSuite extends FunSuite:
               // decode this integer into its seven on/off segment values
               (bits >> i) & 1
         .map: segments =>
-          segments.toVector
+          SegmentState.fromVector(segments.toVector)
         .find: segments =>
           NearestCanonicalOracle.nearest(segments).size > 1
 

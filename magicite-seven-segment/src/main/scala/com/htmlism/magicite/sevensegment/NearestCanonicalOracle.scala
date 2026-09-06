@@ -25,19 +25,15 @@ object NearestCanonicalOracle:
       def toInt: Int = hd
 
   /** The Hamming distance between two seven-segment patterns */
-  def hammingDistance(left: Vector[Int], right: Vector[Int]): HammingDistance =
-    SevenSegment.requireSegments(left)
-    SevenSegment.requireSegments(right)
-
+  def hammingDistance(left: SegmentState, right: SegmentState): HammingDistance =
     left
-      .zip(right)
+      .toVector
+      .zip(right.toVector)
       .count: (a, b) =>
         a != b
 
   /** Every canonical digit together with its Hamming distance to the observed pattern, sorted by distance then digit */
-  def distances(segments: Vector[Int]): Vector[(Int, HammingDistance)] =
-    SevenSegment.requireSegments(segments)
-
+  def distances(segments: SegmentState): Vector[(Int, HammingDistance)] =
     SevenSegment
       .canonicalDigits
       .map: canonical =>
@@ -46,7 +42,7 @@ object NearestCanonicalOracle:
         (distance, digit)
 
   /** The smallest Hamming distance between the observed pattern and any canonical digit */
-  def minimumDistance(segments: Vector[Int]): HammingDistance =
+  def minimumDistance(segments: SegmentState): HammingDistance =
     SevenSegment
       .canonicalDigits
       .map: canonical =>
@@ -55,7 +51,7 @@ object NearestCanonicalOracle:
         Math.min(best, distance)
 
   /** Every canonical digit that achieves the minimum Hamming distance, sorted by digit */
-  def nearest(segments: Vector[Int]): Vector[Int] =
+  def nearest(segments: SegmentState): Vector[Int] =
     val minDist =
       minimumDistance(segments)
 
@@ -66,7 +62,7 @@ object NearestCanonicalOracle:
           canonical.digit
 
   /** Whether the observed pattern has exactly one nearest canonical digit */
-  def isUnambiguous(segments: Vector[Int]): Boolean =
+  def isUnambiguous(segments: SegmentState): Boolean =
     nearest(segments).size == 1
 
   /**
@@ -75,7 +71,7 @@ object NearestCanonicalOracle:
     * This is the deterministic "what digit does this look like?" answer that a recognition system would return when the
     * answer is clear-cut.
     */
-  def predict(segments: Vector[Int]): Option[Int] =
+  def predict(segments: SegmentState): Option[Int] =
     nearest(segments) match
       case Vector(single) => Some(single)
       case _              => None

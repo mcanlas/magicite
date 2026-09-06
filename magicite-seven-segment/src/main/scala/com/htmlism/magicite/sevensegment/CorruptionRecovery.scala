@@ -11,8 +11,7 @@ import com.htmlism.magicite.*
   */
 object CorruptionRecovery:
   /** One observed one-bit corruption and every canonical digit that could have produced it */
-  final case class CorruptedDisplay(segments: Vector[Int], potentialCanonicalDigits: Vector[Int]):
-    SevenSegment.requireSegments(segments)
+  final case class CorruptedDisplay(segments: SegmentState, potentialCanonicalDigits: Vector[Int]):
     require(potentialCanonicalDigits.nonEmpty, "a corruption must have at least one potential canonical digit")
     require(
       potentialCanonicalDigits == potentialCanonicalDigits.distinct.sorted,
@@ -70,8 +69,10 @@ object CorruptionRecovery:
             .values
             .indices
             .map: i =>
-              canonical.segments.updated(i, 1 - canonical.segments(i)) -> canonical.digit
-        .foldLeft(Map.empty[Vector[Int], Vector[Int]]):
+              canonical
+                .segments
+                .updated(SevenSegment.Segment.values(i), 1 - canonical.segments.toVector(i)) -> canonical.digit
+        .foldLeft(Map.empty[SegmentState, Vector[Int]]):
           case (grouped, (segments, sourceDigit)) =>
             grouped.updated(segments, grouped.getOrElse(segments, Vector.empty) :+ sourceDigit)
 
@@ -79,7 +80,7 @@ object CorruptionRecovery:
       .toVector
       .map: (segments, sourceDigits) =>
         CorruptedDisplay(segments, sourceDigits.distinct.sorted)
-      .sortBy(_.segments.mkString)
+      .sortBy(_.segments.toVector.mkString)
 
   /** Corruptions that exactly equal a canonical glyph and are excluded from noisy training and evaluation */
   val canonicalShaped: Vector[CorruptedDisplay] =

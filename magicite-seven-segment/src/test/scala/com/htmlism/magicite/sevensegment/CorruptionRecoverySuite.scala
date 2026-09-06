@@ -72,11 +72,11 @@ object CorruptionRecoverySuite extends FunSuite:
       CorruptionRecovery.Evaluation(
         Vector(
           CorruptionRecovery.Prediction(
-            CorruptionRecovery.CorruptedDisplay(Vector(1, 0, 1, 1, 1, 1, 0), Vector(0, 6)),
+            CorruptionRecovery.CorruptedDisplay(SegmentState(1, 0, 1, 1, 1, 1, 0), Vector(0, 6)),
             predictedDigit = 6
           ),
           CorruptionRecovery.Prediction(
-            CorruptionRecovery.CorruptedDisplay(Vector(1, 1, 0, 1, 0, 0, 1), Vector(2)),
+            CorruptionRecovery.CorruptedDisplay(SegmentState(1, 1, 0, 1, 0, 0, 1), Vector(2)),
             predictedDigit = 7
           )
         )

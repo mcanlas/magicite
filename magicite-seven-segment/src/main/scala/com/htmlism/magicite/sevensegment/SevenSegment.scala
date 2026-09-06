@@ -20,9 +20,8 @@ object SevenSegment:
   given Dimension[DigitClasses] = Dimension(10)
 
   /** One labelled seven-segment input, whether canonical or an unambiguous corruption */
-  final case class LabeledDisplay(digit: Int, segments: Vector[Int]):
+  final case class LabeledDisplay(digit: Int, segments: SegmentState):
     require(0 <= digit && digit <= 9, s"digit must be between 0 and 9, but was $digit")
-    requireSegments(segments)
 
   /**
     * The ten authoritative digit inputs in `[top, upper-right, lower-right, bottom, lower-left, upper-left, middle]`
@@ -30,16 +29,16 @@ object SevenSegment:
     */
   val canonicalDigits: Vector[LabeledDisplay] =
     Vector(
-      LabeledDisplay(0, Vector(1, 1, 1, 1, 1, 1, 0)),
-      LabeledDisplay(1, Vector(0, 1, 1, 0, 0, 0, 0)),
-      LabeledDisplay(2, Vector(1, 1, 0, 1, 1, 0, 1)),
-      LabeledDisplay(3, Vector(1, 1, 1, 1, 0, 0, 1)),
-      LabeledDisplay(4, Vector(0, 1, 1, 0, 0, 1, 1)),
-      LabeledDisplay(5, Vector(1, 0, 1, 1, 0, 1, 1)),
-      LabeledDisplay(6, Vector(1, 0, 1, 1, 1, 1, 1)),
-      LabeledDisplay(7, Vector(1, 1, 1, 0, 0, 0, 0)),
-      LabeledDisplay(8, Vector(1, 1, 1, 1, 1, 1, 1)),
-      LabeledDisplay(9, Vector(1, 1, 1, 1, 0, 1, 1))
+      LabeledDisplay(0, SegmentState(1, 1, 1, 1, 1, 1, 0)),
+      LabeledDisplay(1, SegmentState(0, 1, 1, 0, 0, 0, 0)),
+      LabeledDisplay(2, SegmentState(1, 1, 0, 1, 1, 0, 1)),
+      LabeledDisplay(3, SegmentState(1, 1, 1, 1, 0, 0, 1)),
+      LabeledDisplay(4, SegmentState(0, 1, 1, 0, 0, 1, 1)),
+      LabeledDisplay(5, SegmentState(1, 0, 1, 1, 0, 1, 1)),
+      LabeledDisplay(6, SegmentState(1, 0, 1, 1, 1, 1, 1)),
+      LabeledDisplay(7, SegmentState(1, 1, 1, 0, 0, 0, 0)),
+      LabeledDisplay(8, SegmentState(1, 1, 1, 1, 1, 1, 1)),
+      LabeledDisplay(9, SegmentState(1, 1, 1, 1, 0, 1, 1))
     )
 
   /** The clean-only classifier shape: seven binary inputs, sixteen hidden neurons, and ten output logits */
@@ -140,7 +139,7 @@ object SevenSegment:
   def predict[A: RealScalar as scalar](network: Model[A], row: LabeledDisplay): Int =
     predictSegments(network, row.segments)
 
-  private[sevensegment] def predictSegments[A: RealScalar as scalar](network: Model[A], segments: Vector[Int]): Int =
+  private[sevensegment] def predictSegments[A: RealScalar as scalar](network: Model[A], segments: SegmentState): Int =
     val probabilities =
       Softmax.probabilities(network.forward(encodeSegments[A](segments)).prediction).values
 
@@ -150,11 +149,9 @@ object SevenSegment:
       .foldLeft(0): (largestIndex, i) =>
         if scalar.isPositive(probabilities(i) - probabilities(largestIndex)) then i else largestIndex
 
-  private def encodeSegments[A: RealScalar as scalar](segments: Vector[Int]): Vec[A, Segments] =
-    requireSegments(segments)
-
+  private def encodeSegments[A: RealScalar as scalar](segments: SegmentState): Vec[A, Segments] =
     Vec[A, Segments](scalar.tabulate(Segment.values.length): i =>
-      scalar.fromDouble(segments(i).toDouble))
+      scalar.fromDouble(segments.toVector(i).toDouble))
 
   private val DigitClassesDimension = 10
 

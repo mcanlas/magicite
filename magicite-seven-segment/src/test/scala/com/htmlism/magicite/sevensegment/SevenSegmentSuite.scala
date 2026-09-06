@@ -23,16 +23,16 @@ object SevenSegmentSuite extends FunSuite:
     expect.all(
       digits == (0 to 9).toVector,
       segments == Vector(
-        Vector(1, 1, 1, 1, 1, 1, 0),
-        Vector(0, 1, 1, 0, 0, 0, 0),
-        Vector(1, 1, 0, 1, 1, 0, 1),
-        Vector(1, 1, 1, 1, 0, 0, 1),
-        Vector(0, 1, 1, 0, 0, 1, 1),
-        Vector(1, 0, 1, 1, 0, 1, 1),
-        Vector(1, 0, 1, 1, 1, 1, 1),
-        Vector(1, 1, 1, 0, 0, 0, 0),
-        Vector(1, 1, 1, 1, 1, 1, 1),
-        Vector(1, 1, 1, 1, 0, 1, 1)
+        SegmentState(1, 1, 1, 1, 1, 1, 0),
+        SegmentState(0, 1, 1, 0, 0, 0, 0),
+        SegmentState(1, 1, 0, 1, 1, 0, 1),
+        SegmentState(1, 1, 1, 1, 0, 0, 1),
+        SegmentState(0, 1, 1, 0, 0, 1, 1),
+        SegmentState(1, 0, 1, 1, 0, 1, 1),
+        SegmentState(1, 0, 1, 1, 1, 1, 1),
+        SegmentState(1, 1, 1, 0, 0, 0, 0),
+        SegmentState(1, 1, 1, 1, 1, 1, 1),
+        SegmentState(1, 1, 1, 1, 0, 1, 1)
       )
     )
 
