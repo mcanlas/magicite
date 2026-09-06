@@ -1,6 +1,7 @@
 package com.htmlism.magicite
 
 enum Initialization:
+  /** Draws weights from Xavier's symmetric uniform distribution */
   case Xavier
 
   /**

@@ -52,6 +52,10 @@ object Network:
     *
     * @param hiddenLayerCount
     *   The number of hidden `D` layers, which must be non-negative
+    * @param hiddenActivation
+    *   The activation applied by each hidden `D` layer
+    * @param outputActivation
+    *   The activation applied by the final output layer
     * @tparam A
     *   The real-valued scalar type used by the network parameters
     * @tparam I
@@ -64,24 +68,25 @@ object Network:
   def initialize[A: RealScalar, I: Dimension, D: Dimension, O: Dimension](
       initialization: Initialization,
       hiddenLayerCount: Int,
-      activation: Activation
+      hiddenActivation: Activation,
+      outputActivation: Activation
   ): Rng[Network[A, I, O]] =
     require(hiddenLayerCount >= 0, s"hidden layer count must be non-negative, but was $hiddenLayerCount")
 
     if hiddenLayerCount == 0 then
       for output <- DenseLayer
-          .initialize[A, O, I](initialization, activation)
+          .initialize[A, O, I](initialization, outputActivation)
       yield Direct(output)
 
     else
       for
         first <- DenseLayer
-          .initialize[A, D, I](initialization, activation)
+          .initialize[A, D, I](initialization, hiddenActivation)
 
         middle <- Vector
-          .fill(hiddenLayerCount - 1)(DenseLayer.initialize[A, D, D](initialization, activation))
+          .fill(hiddenLayerCount - 1)(DenseLayer.initialize[A, D, D](initialization, hiddenActivation))
           .sequence
 
         output <- DenseLayer
-          .initialize[A, O, D](initialization, activation)
+          .initialize[A, O, D](initialization, outputActivation)
       yield WithHidden(first, middle, output)

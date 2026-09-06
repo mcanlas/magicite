@@ -4,9 +4,16 @@ package com.htmlism.magicite
   * Used to transform the output of a single neuron
   */
 enum Activation:
+  /** Returns its input unchanged */
   case Identity
+
+  /** Returns zero for negative inputs and the input otherwise */
   case Relu
+
+  /** Smoothly maps values into the interval from negative one to one */
   case Tanh
+
+  /** Smoothly maps values into the interval from zero to one */
   case Sigmoid
 
   /**
