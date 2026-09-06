@@ -26,6 +26,24 @@ object MatrixSuite extends FunSuite:
 
     expect.eql(Vector(140.0f, 320.0f), output.values.toVector)
 
+  test("multiplies a transposed row-major matrix by a vector"):
+    val matrix =
+      Matrix[Double, Two, Three](Array(1.0, -1.0, 0.0, 0.0, 1.0, -1.0))
+
+    val actual =
+      matrix.transposeMultiply(Vec[Double, Two](Array(2.0, -3.0)))
+
+    expect.eql(Vector(2.0, -5.0, 3.0), actual.values.toVector)
+
+  test("forms a matrix from every pair of vector coordinates"):
+    val actual =
+      Matrix.outer(
+        Vec[Double, Two](Array(2.0, -3.0)),
+        Vec[Double, Three](Array(1.0, 0.5, -0.5))
+      )
+
+    expect.eql(Vector(2.0, 1.0, -1.0, -3.0, -1.5, 1.5), actual.values.toVector)
+
   test("initializes every matrix value with sequential Xavier draws"):
     val actual =
       Matrix

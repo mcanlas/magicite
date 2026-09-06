@@ -17,7 +17,7 @@ package com.htmlism.magicite
   * @param activation
   *   The scalar activation applied to each pre-activation
   */
-final case class DenseLayer[A, M, N](
+final case class DenseLayer[A, M: Dimension, N: Dimension](
     weights: Matrix[A, M, N],
     biases: Vec[A, M],
     activation: Activation
@@ -36,6 +36,49 @@ final case class DenseLayer[A, M, N](
       input          = input,
       preActivations = preActivations,
       outputs        = preActivations.map(activation.apply)
+    )
+
+  /**
+    * Backpropagates a loss gradient with respect to this layer's activated outputs
+    *
+    * @param forwardPass
+    *   The cached values from this layer's forward invocation
+    * @param outputGradient
+    *   The loss gradient with respect to the activated outputs
+    */
+  def backward(
+      forwardPass: LayerForwardPass[A, N, M],
+      outputGradient: Vec[A, M]
+  )(using scalar: RealScalar[A]): LayerBackwardPass[A, N, M] =
+    val preActivationGradient =
+      Vec[A, M](scalar.tabulate(outputGradient.size): index =>
+        outputGradient.values(index) * activation.derivative(
+          forwardPass.preActivations.values(index),
+          forwardPass.outputs.values(index)
+        ))
+
+    backwardFromPreActivation(forwardPass, preActivationGradient)
+
+  /**
+    * Backpropagates a loss gradient that is already with respect to affine outputs
+    *
+    * This is useful for binary cross-entropy paired with a sigmoid output, whose combined gradient is
+    * `prediction - target`.
+    *
+    * @param forwardPass
+    *   The cached values from this layer's forward invocation
+    * @param preActivationGradient
+    *   The loss gradient with respect to the affine outputs
+    */
+  def backwardFromPreActivation(
+      forwardPass: LayerForwardPass[A, N, M],
+      preActivationGradient: Vec[A, M]
+  )(using Scalar[A]): LayerBackwardPass[A, N, M] =
+    LayerBackwardPass(
+      preActivationGradient = preActivationGradient,
+      weightGradients       = Matrix.outer(preActivationGradient, forwardPass.input),
+      biasGradients         = preActivationGradient,
+      inputGradient         = weights.transposeMultiply(preActivationGradient)
     )
 
 object DenseLayer:

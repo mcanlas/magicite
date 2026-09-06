@@ -54,7 +54,46 @@ final case class Matrix[A, M: Dimension as rowDimension, N: Dimension as columnD
         .foldLeft(scalar.zero): (sum, c) =>
           sum + values(rowOffset + c) * input.values(c))
 
+  /**
+    * Multiplies this matrix's transpose by an M-value output gradient
+    *
+    * @param outputGradient
+    *   An M-length gradient to propagate to this matrix's N-value input side
+    */
+  def transposeMultiply(outputGradient: Vec[A, M])(using scalar: Scalar[A]): Vec[A, N] =
+    Vec[A, N](scalar.tabulate(columns): c =>
+      (0 until rows)
+        .foldLeft(scalar.zero): (sum, r) =>
+          sum + values(r * columns + c) * outputGradient.values(r))
+
 object Matrix:
+  /**
+    * Forms an M x N matrix from every pair of left and right vector coordinates
+    *
+    * @tparam A
+    *   The scalar type stored in the vectors and result matrix
+    * @tparam M
+    *   The dimension of the left vector and result rows
+    * @tparam N
+    *   The dimension of the right vector and result columns
+    * @param left
+    *   The M-length vector that supplies each result row's scale
+    * @param right
+    *   The N-length vector repeated across result rows
+    */
+  def outer[A: Scalar as scalar, M: Dimension as rowDimension, N: Dimension as columnDimension](
+      left: Vec[A, M],
+      right: Vec[A, N]
+  ): Matrix[A, M, N] =
+    Matrix[A, M, N](scalar.tabulate(rowDimension.size * columnDimension.size): index =>
+      val row =
+        index / columnDimension.size
+
+      val column =
+        index % columnDimension.size
+
+      left.values(row) * right.values(column))
+
   /**
     * Draws row-major matrix values sequentially from the supplied initializer
     *
