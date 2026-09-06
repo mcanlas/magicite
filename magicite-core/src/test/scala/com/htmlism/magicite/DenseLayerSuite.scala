@@ -114,3 +114,94 @@ object DenseLayerSuite extends FunSuite:
       actual.biasGradients.values.toVector == Vector(outputGradient),
       actual.inputGradient.values.toVector == Vector(outputGradient, -outputGradient, 0.0)
     )
+
+  test("moves weights and biases opposite their gradients"):
+    val layer =
+      DenseLayer(
+        weights    = Matrix[Double, Two, Three](Array(1.0, -1.0, 0.0, 0.0, 1.0, -1.0)),
+        biases     = Vec[Double, Two](Array(0.5, -0.5)),
+        activation = Activation.Tanh
+      )
+
+    val gradients =
+      LayerBackwardPass(
+        preActivationGradient = Vec[Double, Two](Array(2.0, -3.0)),
+        weightGradients       = Matrix[Double, Two, Three](Array(2.0, 1.0, -1.0, -3.0, -1.5, 1.5)),
+        biasGradients         = Vec[Double, Two](Array(2.0, -3.0)),
+        inputGradient         = Vec[Double, Three](Array(0.0, 0.0, 0.0))
+      )
+
+    val actual =
+      layer.updated(gradients, learningRate = 0.5)
+
+    expect.all(
+      actual.weights.values.toVector == Vector(0.0, -1.5, 0.5, 1.5, 1.75, -1.75),
+      actual.biases.values.toVector == Vector(-0.5, 1.0),
+      layer.weights.values.toVector == Vector(1.0, -1.0, 0.0, 0.0, 1.0, -1.0),
+      layer.biases.values.toVector == Vector(0.5, -0.5)
+    )
+
+  test("matches binary cross-entropy finite differences for every weight and bias"):
+    val layer =
+      DenseLayer(
+        weights    = Matrix[Double, One, Three](Array(1.0, -1.0, 0.0)),
+        biases     = Vec[Double, One](Array(0.5)),
+        activation = Activation.Sigmoid
+      )
+
+    val input =
+      Vec[Double, Three](Array(1.0, 0.5, -0.5))
+
+    val forwardPass =
+      layer.forward(input)
+
+    val outputGradient =
+      BinaryCrossEntropy.sigmoidPreActivationDerivative(1.0, forwardPass.outputs.values(0))
+
+    val analytic =
+      layer.backwardFromPreActivation(forwardPass, Vec[Double, One](Array(outputGradient)))
+
+    def loss(weights: Array[Double], biases: Array[Double]): Double =
+      val prediction =
+        layer
+          .copy(weights = Matrix[Double, One, Three](weights), biases = Vec[Double, One](biases))
+          .forward(input)
+          .outputs
+          .values(0)
+
+      BinaryCrossEntropy.value(1.0, prediction)
+
+    val epsilon =
+      1e-5
+
+    def weightGradient(index: Int): Double =
+      val plus =
+        layer.weights.values.clone
+      plus(index) += epsilon
+
+      val minus =
+        layer.weights.values.clone
+      minus(index) -= epsilon
+
+      (loss(plus, layer.biases.values) - loss(minus, layer.biases.values)) / (2.0 * epsilon)
+
+    def biasGradient: Double =
+      val plus =
+        layer.biases.values.clone
+      plus(0) += epsilon
+
+      val minus =
+        layer.biases.values.clone
+      minus(0) -= epsilon
+
+      (loss(layer.weights.values, plus) - loss(layer.weights.values, minus)) / (2.0 * epsilon)
+
+    val tolerance =
+      1e-8
+
+    expect.all(
+      math.abs(weightGradient(0) - analytic.weightGradients.values(0)) < tolerance,
+      math.abs(weightGradient(1) - analytic.weightGradients.values(1)) < tolerance,
+      math.abs(weightGradient(2) - analytic.weightGradients.values(2)) < tolerance,
+      math.abs(biasGradient - analytic.biasGradients.values(0)) < tolerance
+    )

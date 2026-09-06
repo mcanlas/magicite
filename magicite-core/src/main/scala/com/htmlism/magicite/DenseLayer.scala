@@ -81,6 +81,26 @@ final case class DenseLayer[A, M: Dimension, N: Dimension](
       inputGradient         = weights.transposeMultiply(preActivationGradient)
     )
 
+  /**
+    * Returns a copy with its weights and biases moved opposite their gradients
+    *
+    * @param gradients
+    *   Gradients produced for this layer by backpropagation
+    * @param learningRate
+    *   The positive scale of this gradient-descent step
+    */
+  def updated(
+      gradients: LayerBackwardPass[A, N, M],
+      learningRate: A
+  )(using scalar: RealScalar[A]): DenseLayer[A, M, N] =
+    DenseLayer(
+      weights = Matrix[A, M, N](scalar.tabulate(weights.values.length): index =>
+        weights.values(index) - learningRate * gradients.weightGradients.values(index)),
+      biases = Vec[A, M](scalar.tabulate(biases.values.length): index =>
+        biases.values(index) - learningRate * gradients.biasGradients.values(index)),
+      activation = activation
+    )
+
 object DenseLayer:
   /**
     * Draws weights and sets biases to zero

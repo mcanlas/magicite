@@ -66,6 +66,20 @@ object Network:
         output.backwardFromPreActivation(forwardPass.outputPass, outputPreActivationGradient)
       )
 
+    /**
+      * Returns a copy with its output-layer parameters moved opposite their gradients
+      *
+      * @param gradients
+      *   Gradients produced for this network by backpropagation
+      * @param learningRate
+      *   The positive scale of this gradient-descent step
+      */
+    def updated(
+        gradients: NetworkBackwardPass.Direct[A, I, O],
+        learningRate: A
+    )(using RealScalar[A]): Direct[A, I, O] =
+      Direct(output.updated(gradients.outputPass, learningRate))
+
   /**
     * A network with one or more `D`-tagged hidden layers
     *
@@ -167,6 +181,35 @@ object Network:
         firstHidden      = firstHidden.backward(forwardPass.firstHidden, firstHiddenOutputGradient),
         additionalHidden = additionalBackwardPasses,
         outputPass       = outputBackwardPass
+      )
+
+    /**
+      * Returns a copy with every layer's parameters moved opposite their gradients
+      *
+      * @param gradients
+      *   Gradients produced for this network by backpropagation
+      * @param learningRate
+      *   The positive scale of this gradient-descent step
+      */
+    def updated(
+        gradients: NetworkBackwardPass.WithHidden[A, I, D, O],
+        learningRate: A
+    )(using RealScalar[A]): WithHidden[A, I, D, O] =
+      require(
+        additionalHidden.size == gradients.additionalHidden.size,
+        s"network has ${additionalHidden.size} additional hidden layers but gradients have ${gradients.additionalHidden.size}"
+      )
+
+      val updatedAdditionalHidden =
+        additionalHidden
+          .zip(gradients.additionalHidden)
+          .map:
+            case (layer, layerGradients) => layer.updated(layerGradients, learningRate)
+
+      WithHidden(
+        firstHidden      = firstHidden.updated(gradients.firstHidden, learningRate),
+        additionalHidden = updatedAdditionalHidden,
+        output           = output.updated(gradients.outputPass, learningRate)
       )
 
   /**
