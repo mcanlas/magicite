@@ -11,6 +11,9 @@ enum Activation:
 
   /**
     * Activations remain generic over real-valued scalar types.
+    *
+    * @tparam A
+    *   The real-valued scalar type of the activation input and result
     */
   def apply[A](x: A)(using scalar: RealScalar[A]): A =
     this match

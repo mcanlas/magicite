@@ -55,7 +55,16 @@ final case class Matrix[A, M, N](values: Array[A])(using
           sum + values(rowOffset + c) * input.values(c))
 
 object Matrix:
-  /** Draws row-major matrix values sequentially from the supplied initializer */
+  /**
+    * Draws row-major matrix values sequentially from the supplied initializer
+    *
+    * @tparam A
+    *   The real-valued scalar type of each weight
+    * @tparam M
+    *   The output dimension, with one coordinate for each matrix row
+    * @tparam N
+    *   The input dimension, with one coordinate for each matrix column
+    */
   def initialize[A, M, N](initialization: Initialization)(using
       rowDimension: Dimension[M],
       columnDimension: Dimension[N],

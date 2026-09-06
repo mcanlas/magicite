@@ -1,6 +1,11 @@
 package com.htmlism.magicite
 
-/** Operations available for real-valued network parameters and activations */
+/**
+  * Operations available for real-valued network parameters and activations
+  *
+  * @tparam A
+  *   The real-valued scalar type operated on by this instance
+  */
 trait RealScalar[A] extends Scalar[A]:
   def one: A
   def fromDouble(value: Double): A

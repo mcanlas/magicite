@@ -21,7 +21,16 @@ final case class DenseLayer[A, M, N](
   )
 
 object DenseLayer:
-  /** Draws weights and sets biases to zero */
+  /**
+    * Draws weights and sets biases to zero
+    *
+    * @tparam A
+    *   The real-valued scalar type used by the layer
+    * @tparam M
+    *   The output dimension, with one coordinate for each output neuron
+    * @tparam N
+    *   The input dimension, with one coordinate for each input feature
+    */
   def initialize[A, M, N](initialization: Initialization, activation: Activation)(using
       rowDimension: Dimension[M],
       columnDimension: Dimension[N],

@@ -6,6 +6,9 @@ package com.htmlism.magicite
   * This is deliberately project-owned rather than a general-purpose numeric hierarchy: it states the exact operations
   * the current linear-algebra containers demand. `tabulate` keeps `Vec` and `Matrix` backed by specialized primitive
   * arrays.
+  *
+  * @tparam A
+  *   The scalar type operated on by this instance
   */
 trait Scalar[A]:
   def zero: A
