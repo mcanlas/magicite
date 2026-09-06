@@ -61,15 +61,10 @@ object Network:
     * @tparam O
     *   The output dimension tag
     */
-  def initialize[A, I, D, O](
+  def initialize[A: RealScalar, I: Dimension, D: Dimension, O: Dimension](
       initialization: Initialization,
       hiddenLayerCount: Int,
       activation: Activation
-  )(using
-      inputDimension: Dimension[I],
-      hiddenDimension: Dimension[D],
-      outputDimension: Dimension[O],
-      scalar: RealScalar[A]
   ): Rng[Network[A, I, O]] =
     require(hiddenLayerCount >= 0, s"hidden layer count must be non-negative, but was $hiddenLayerCount")
 

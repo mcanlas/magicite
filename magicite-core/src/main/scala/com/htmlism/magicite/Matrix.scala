@@ -15,10 +15,7 @@ import cats.syntax.all.*
   * @tparam N
   *   The input dimension, with one coordinate for each matrix column
   */
-final case class Matrix[A, M, N](values: Array[A])(using
-    rowDimension: Dimension[M],
-    columnDimension: Dimension[N]
-):
+final case class Matrix[A, M: Dimension as rowDimension, N: Dimension as columnDimension](values: Array[A]):
   def rows: Int =
     rowDimension.size
 
@@ -65,10 +62,8 @@ object Matrix:
     * @tparam N
     *   The input dimension, with one coordinate for each matrix column
     */
-  def initialize[A, M, N](initialization: Initialization)(using
-      rowDimension: Dimension[M],
-      columnDimension: Dimension[N],
-      scalar: RealScalar[A]
+  def initialize[A: RealScalar as scalar, M: Dimension as rowDimension, N: Dimension as columnDimension](
+      initialization: Initialization
   ): Rng[Matrix[A, M, N]] =
     val nextWeight =
       initialization.weight[A](fanIn = columnDimension.size, fanOut = rowDimension.size)

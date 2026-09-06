@@ -12,11 +12,11 @@ object ScalarSuite extends FunSuite:
   test("converts a Double to the requested scalar type"):
     expect.eql(1.25f, convert[Float](1.25))
 
-  private def calculate[A](left: A, right: A)(using Scalar[A]): A =
+  private def calculate[A: Scalar](left: A, right: A): A =
     left + right * left
 
-  private def calculateReal[A](left: A, right: A)(using RealScalar[A]): (A, A, A) =
+  private def calculateReal[A: RealScalar](left: A, right: A): (A, A, A) =
     (left - right, left / right, -left)
 
-  private def convert[A](value: Double)(using RealScalar[A]): A =
+  private def convert[A: RealScalar](value: Double): A =
     value.toScalar

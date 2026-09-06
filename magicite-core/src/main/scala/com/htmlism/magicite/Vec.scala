@@ -8,7 +8,7 @@ package com.htmlism.magicite
   * @tparam D
   *   The dimension that identifies this vector's coordinates
   */
-final case class Vec[A, D](values: Array[A])(using dimension: Dimension[D]):
+final case class Vec[A, D: Dimension as dimension](values: Array[A]):
   require(
     values.length == dimension.size,
     s"dimension has size ${dimension.size} but vector has ${values.length} values"
@@ -18,7 +18,7 @@ final case class Vec[A, D](values: Array[A])(using dimension: Dimension[D]):
     values.length
 
   /** Adds bias or gradient vectors elementwise */
-  def +(that: Vec[A, D])(using scalar: Scalar[A]): Vec[A, D] =
+  def +(that: Vec[A, D])(using Scalar[A]): Vec[A, D] =
     require(size == that.size, s"cannot add vectors with sizes $size and ${that.size}")
 
     val result = values.clone

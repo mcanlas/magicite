@@ -15,7 +15,7 @@ enum Activation:
     * @tparam A
     *   The real-valued scalar type of the activation input and result
     */
-  def apply[A](x: A)(using scalar: RealScalar[A]): A =
+  def apply[A: RealScalar as scalar](x: A): A =
     this match
       case Identity => x
       case Relu     => scalar.maximum(scalar.zero, x)

@@ -31,10 +31,9 @@ object DenseLayer:
     * @tparam N
     *   The input dimension, with one coordinate for each input feature
     */
-  def initialize[A, M, N](initialization: Initialization, activation: Activation)(using
-      rowDimension: Dimension[M],
-      columnDimension: Dimension[N],
-      scalar: RealScalar[A]
+  def initialize[A: RealScalar as scalar, M: Dimension as rowDimension, N: Dimension](
+      initialization: Initialization,
+      activation: Activation
   ): Rng[DenseLayer[A, M, N]] =
     for weights <- Matrix.initialize[A, M, N](initialization)
     yield DenseLayer(

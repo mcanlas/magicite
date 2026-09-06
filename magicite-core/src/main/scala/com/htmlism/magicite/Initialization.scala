@@ -9,7 +9,7 @@ enum Initialization:
     * @tparam A
     *   The real-valued scalar type of the bound
     */
-  def limit[A](fanIn: Int, fanOut: Int)(using scalar: RealScalar[A]): A =
+  def limit[A: RealScalar as scalar](fanIn: Int, fanOut: Int): A =
     require(fanIn > 0, s"fanIn must be positive, but was $fanIn")
     require(fanOut > 0, s"fanOut must be positive, but was $fanOut")
 
@@ -23,7 +23,7 @@ enum Initialization:
     * @tparam A
     *   The real-valued scalar type of the weight
     */
-  def weight[A](fanIn: Int, fanOut: Int)(using scalar: RealScalar[A]): Rng[A] =
+  def weight[A: RealScalar as scalar](fanIn: Int, fanOut: Int): Rng[A] =
     this match
       case Xavier =>
         val xavierLimit = limit[A](fanIn, fanOut)
