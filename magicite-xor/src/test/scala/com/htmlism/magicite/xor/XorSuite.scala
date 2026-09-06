@@ -3,6 +3,7 @@ package com.htmlism.magicite.xor
 import weaver.*
 
 import com.htmlism.magicite.*
+import com.htmlism.magicite.Approx.approximatelyEqual
 
 object XorSuite extends FunSuite:
   import Xor.given
@@ -138,7 +139,7 @@ object XorSuite extends FunSuite:
           rowLoss(withFirstHiddenWeight(network, index = 0, originalWeight - epsilon), row)
       ) / (2.0 * epsilon)
 
-    expect(clue(math.abs(numericalGradient - analyticGradient)) < clue(1e-8))
+    expect(clue(approximatelyEqual(numericalGradient, analyticGradient, tolerance = 1e-8)))
 
   /*
    * A gradient is useful only if applying it moves the model in a better direction. Starting from a fixed network,

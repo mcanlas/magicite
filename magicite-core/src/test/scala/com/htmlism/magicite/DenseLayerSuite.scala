@@ -4,6 +4,8 @@ import scala.util.Random
 
 import weaver.*
 
+import com.htmlism.magicite.Approx.approximatelyEqual
+
 object DenseLayerSuite extends FunSuite:
   import TestDimensions.*
   import TestDimensions.given
@@ -200,8 +202,8 @@ object DenseLayerSuite extends FunSuite:
       1e-8
 
     expect.all(
-      math.abs(weightGradient(0) - analytic.weightGradients.values(0)) < tolerance,
-      math.abs(weightGradient(1) - analytic.weightGradients.values(1)) < tolerance,
-      math.abs(weightGradient(2) - analytic.weightGradients.values(2)) < tolerance,
-      math.abs(biasGradient - analytic.biasGradients.values(0)) < tolerance
+      approximatelyEqual(weightGradient(0), analytic.weightGradients.values(0), tolerance),
+      approximatelyEqual(weightGradient(1), analytic.weightGradients.values(1), tolerance),
+      approximatelyEqual(weightGradient(2), analytic.weightGradients.values(2), tolerance),
+      approximatelyEqual(biasGradient, analytic.biasGradients.values(0), tolerance)
     )

@@ -5,6 +5,8 @@ import org.scalacheck.Gen
 import weaver.*
 import weaver.scalacheck.Checkers
 
+import com.htmlism.magicite.Approx.approximatelyEqual
+
 object MatrixProperties extends SimpleIOSuite with Checkers:
   import TestDimensions.*
   import TestDimensions.given
@@ -25,9 +27,6 @@ object MatrixProperties extends SimpleIOSuite with Checkers:
       .listOfN(3, Gen.choose(-10.0, 10.0))
       .map(values => Vec[Double, Three](values.toArray))
 
-  private def approximatelyEqual(left: Double, right: Double) =
-    math.abs(left - right) <= 1e-10
-
   private val matrixAndVectorPairs: Gen[(Matrix[Double, Two, Three], Vec[Double, Three], Vec[Double, Three])] =
     for
       matrix <- matrixOfTwoByThree
@@ -41,7 +40,7 @@ object MatrixProperties extends SimpleIOSuite with Checkers:
       val separate = matrix.multiply(left) + matrix.multiply(right)
 
       forEach(combined.values.iterator.zip(separate.values).toList): (actual, expected) =>
-        expect(approximatelyEqual(actual, expected))
+        expect(approximatelyEqual(actual, expected, tolerance = 1e-10))
 
   test("a zero matrix maps every compatible vector to zero"):
     forall(vectorOfThree): input =>

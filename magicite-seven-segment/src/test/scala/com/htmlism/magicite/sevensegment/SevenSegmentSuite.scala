@@ -3,6 +3,7 @@ package com.htmlism.magicite.sevensegment
 import weaver.*
 
 import com.htmlism.magicite.*
+import com.htmlism.magicite.Approx.approximatelyEqual
 
 object SevenSegmentSuite extends FunSuite:
   test("encodes the canonical digits in digit order"):
@@ -50,5 +51,5 @@ object SevenSegmentSuite extends FunSuite:
 
     expect.all(
       predictions == SevenSegment.canonicalDigits.map(_.digit),
-      probabilities.forall(probability => math.abs(probability.values.sum - 1.0) < 1e-12)
+      probabilities.forall(probability => approximatelyEqual(probability.values.sum, 1.0, tolerance = 1e-12))
     )

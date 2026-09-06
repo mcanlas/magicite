@@ -2,6 +2,8 @@ package com.htmlism.magicite
 
 import weaver.*
 
+import com.htmlism.magicite.Approx.approximatelyEqual
+
 object CategoricalCrossEntropySuite extends FunSuite:
   sealed trait ThreeClasses
 
@@ -14,7 +16,7 @@ object CategoricalCrossEntropySuite extends FunSuite:
     val probabilities =
       Vec[Double, ThreeClasses](Array(0.1, 0.7, 0.2))
 
-    expect(approximatelyEqual(CategoricalCrossEntropy.value(target, probabilities), -math.log(0.7)))
+    expect(approximatelyEqual(CategoricalCrossEntropy.value(target, probabilities), -math.log(0.7), tolerance = 1e-8))
 
   test("computes the derivative with respect to each probability"):
     val target =
@@ -39,9 +41,9 @@ object CategoricalCrossEntropySuite extends FunSuite:
       CategoricalCrossEntropy.softmaxPreActivationDerivative(target, probabilities)
 
     expect.all(
-      approximatelyEqual(derivative.values(0), 0.1),
-      approximatelyEqual(derivative.values(1), -0.3),
-      approximatelyEqual(derivative.values(2), 0.2)
+      approximatelyEqual(derivative.values(0), 0.1, tolerance  = 1e-8),
+      approximatelyEqual(derivative.values(1), -0.3, tolerance = 1e-8),
+      approximatelyEqual(derivative.values(2), 0.2, tolerance  = 1e-8)
     )
 
   test("matches finite differences through softmax for every logit"):
@@ -73,7 +75,7 @@ object CategoricalCrossEntropySuite extends FunSuite:
         .values
         .zip(numerical)
         .forall:
-          case (left, right) => approximatelyEqual(left, right)
+          case (left, right) => approximatelyEqual(left, right, tolerance = 1e-8)
 
     expect(matches)
 
@@ -103,6 +105,3 @@ object CategoricalCrossEntropySuite extends FunSuite:
     changed(index) = value
 
     Vec[Double, ThreeClasses](changed)
-
-  private def approximatelyEqual(left: Double, right: Double): Boolean =
-    math.abs(left - right) < 1e-8
