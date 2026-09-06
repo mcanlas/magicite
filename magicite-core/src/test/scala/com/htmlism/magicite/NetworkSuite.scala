@@ -155,3 +155,94 @@ object NetworkSuite extends FunSuite:
       actual.outputPass.preActivations.values.toVector == Vector(outputPreActivation),
       actual.prediction.values.toVector == Vector(1.0 / (1.0 + math.exp(-outputPreActivation)))
     )
+
+  test("backpropagates a direct binary-output gradient"):
+    val network =
+      Network.Direct(
+        DenseLayer(
+          weights    = Matrix[Double, One, Three](Array(1.0, -1.0, 0.0)),
+          biases     = Vec[Double, One](Array(0.5)),
+          activation = Activation.Sigmoid
+        )
+      )
+
+    val forwardPass =
+      network.forward(Vec[Double, Three](Array(1.0, 0.5, -0.5)))
+
+    val outputGradient =
+      BinaryCrossEntropy.sigmoidPreActivationDerivative(1.0, forwardPass.prediction.values(0))
+
+    val actual =
+      network.backwardFromOutputPreActivation(forwardPass, Vec[Double, One](Array(outputGradient)))
+
+    expect.all(
+      actual.outputPass.preActivationGradient.values.toVector == Vector(outputGradient),
+      actual.outputPass.weightGradients.values.toVector == Vector(
+        outputGradient,
+        outputGradient * 0.5,
+        outputGradient * -0.5
+      ),
+      actual.outputPass.inputGradient.values.toVector == Vector(outputGradient, -outputGradient, 0.0)
+    )
+
+  test("backpropagates through hidden layers in reverse order"):
+    val network =
+      Network.WithHidden(
+        firstHidden = DenseLayer(
+          weights    = Matrix[Double, Two, Three](Array(1.0, -1.0, 0.0, 0.0, 1.0, -1.0)),
+          biases     = Vec[Double, Two](Array(0.5, -0.5)),
+          activation = Activation.Tanh
+        ),
+        additionalHidden = Vector(
+          DenseLayer(
+            weights    = Matrix[Double, Two, Two](Array(1.0, 0.0, 0.0, 1.0)),
+            biases     = Vec[Double, Two](Array(0.0, 0.0)),
+            activation = Activation.Tanh
+          )
+        ),
+        output = DenseLayer(
+          weights    = Matrix[Double, One, Two](Array(1.0, -1.0)),
+          biases     = Vec[Double, One](Array(0.25)),
+          activation = Activation.Sigmoid
+        )
+      )
+
+    val forwardPass =
+      network.forward(Vec[Double, Three](Array(1.0, 0.5, -0.5)))
+
+    val outputGradient =
+      1.5
+
+    val actual =
+      network.backward(forwardPass, Vec[Double, One](Array(outputGradient)))
+
+    val prediction =
+      forwardPass.prediction.values(0)
+
+    val outputPreActivationGradient =
+      outputGradient * prediction * (1.0 - prediction)
+
+    val additionalOutputs =
+      forwardPass.additionalHidden(0).outputs.values
+
+    val additionalPreActivationGradient =
+      Vector(
+        outputPreActivationGradient * (1.0 - math.pow(additionalOutputs(0), 2)),
+        -outputPreActivationGradient * (1.0 - math.pow(additionalOutputs(1), 2))
+      )
+
+    val firstOutputs =
+      forwardPass.firstHidden.outputs.values
+
+    val firstPreActivationGradient =
+      Vector(
+        additionalPreActivationGradient(0) * (1.0 - math.pow(firstOutputs(0), 2)),
+        additionalPreActivationGradient(1) * (1.0 - math.pow(firstOutputs(1), 2))
+      )
+
+    expect.all(
+      actual.outputPass.preActivationGradient.values.toVector == Vector(outputPreActivationGradient),
+      actual.additionalHidden.size == 1,
+      actual.additionalHidden(0).preActivationGradient.values.toVector == additionalPreActivationGradient,
+      actual.firstHidden.preActivationGradient.values.toVector == firstPreActivationGradient
+    )

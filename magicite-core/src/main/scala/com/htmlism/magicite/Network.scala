@@ -36,6 +36,36 @@ object Network:
     def forward(input: Vec[A, I])(using RealScalar[A]): NetworkForwardPass.Direct[A, I, O] =
       NetworkForwardPass.Direct(input, output.forward(input))
 
+    /**
+      * Backpropagates a loss gradient with respect to this network's activated outputs
+      *
+      * @param forwardPass
+      *   The cached values from this network's forward invocation
+      * @param outputGradient
+      *   The loss gradient with respect to the activated network outputs
+      */
+    def backward(
+        forwardPass: NetworkForwardPass.Direct[A, I, O],
+        outputGradient: Vec[A, O]
+    )(using RealScalar[A]): NetworkBackwardPass.Direct[A, I, O] =
+      NetworkBackwardPass.Direct(output.backward(forwardPass.outputPass, outputGradient))
+
+    /**
+      * Backpropagates a loss gradient that is already with respect to output affine values
+      *
+      * @param forwardPass
+      *   The cached values from this network's forward invocation
+      * @param outputPreActivationGradient
+      *   The loss gradient with respect to the output layer's affine values
+      */
+    def backwardFromOutputPreActivation(
+        forwardPass: NetworkForwardPass.Direct[A, I, O],
+        outputPreActivationGradient: Vec[A, O]
+    )(using Scalar[A]): NetworkBackwardPass.Direct[A, I, O] =
+      NetworkBackwardPass.Direct(
+        output.backwardFromPreActivation(forwardPass.outputPass, outputPreActivationGradient)
+      )
+
   /**
     * A network with one or more `D`-tagged hidden layers
     *
@@ -77,6 +107,66 @@ object Network:
         firstHidden      = firstForwardPass,
         additionalHidden = additionalForwardPasses,
         outputPass       = output.forward(finalHiddenOutput)
+      )
+
+    /**
+      * Backpropagates a loss gradient with respect to this network's activated outputs
+      *
+      * @param forwardPass
+      *   The cached values from this network's forward invocation
+      * @param outputGradient
+      *   The loss gradient with respect to the activated network outputs
+      */
+    def backward(
+        forwardPass: NetworkForwardPass.WithHidden[A, I, D, O],
+        outputGradient: Vec[A, O]
+    )(using RealScalar[A]): NetworkBackwardPass.WithHidden[A, I, D, O] =
+      val outputBackwardPass =
+        output.backward(forwardPass.outputPass, outputGradient)
+
+      backwardFromOutputBackwardPass(forwardPass, outputBackwardPass)
+
+    /**
+      * Backpropagates a loss gradient that is already with respect to output affine values
+      *
+      * @param forwardPass
+      *   The cached values from this network's forward invocation
+      * @param outputPreActivationGradient
+      *   The loss gradient with respect to the output layer's affine values
+      */
+    def backwardFromOutputPreActivation(
+        forwardPass: NetworkForwardPass.WithHidden[A, I, D, O],
+        outputPreActivationGradient: Vec[A, O]
+    )(using RealScalar[A]): NetworkBackwardPass.WithHidden[A, I, D, O] =
+      val outputBackwardPass =
+        output.backwardFromPreActivation(forwardPass.outputPass, outputPreActivationGradient)
+
+      backwardFromOutputBackwardPass(forwardPass, outputBackwardPass)
+
+    private def backwardFromOutputBackwardPass(
+        forwardPass: NetworkForwardPass.WithHidden[A, I, D, O],
+        outputBackwardPass: LayerBackwardPass[A, D, O]
+    )(using RealScalar[A]): NetworkBackwardPass.WithHidden[A, I, D, O] =
+      require(
+        additionalHidden.size == forwardPass.additionalHidden.size,
+        s"network has ${additionalHidden.size} additional hidden layers but forward pass has ${forwardPass.additionalHidden.size}"
+      )
+
+      val (additionalBackwardPasses, firstHiddenOutputGradient) =
+        additionalHidden
+          .zip(forwardPass.additionalHidden)
+          .reverse
+          .foldLeft(Vector.empty[LayerBackwardPass[A, D, D]] -> outputBackwardPass.inputGradient):
+            case ((backwardPasses, outputGradient), (layer, layerForwardPass)) =>
+              val backwardPass =
+                layer.backward(layerForwardPass, outputGradient)
+
+              (backwardPass +: backwardPasses) -> backwardPass.inputGradient
+
+      NetworkBackwardPass.WithHidden(
+        firstHidden      = firstHidden.backward(forwardPass.firstHidden, firstHiddenOutputGradient),
+        additionalHidden = additionalBackwardPasses,
+        outputPass       = outputBackwardPass
       )
 
   /**
