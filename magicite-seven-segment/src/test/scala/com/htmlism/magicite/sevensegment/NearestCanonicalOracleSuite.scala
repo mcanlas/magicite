@@ -67,7 +67,7 @@ object NearestCanonicalOracleSuite extends FunSuite:
 
     expect(predictions == expectedDigits)
 
-  test("a one-bit flip from digit 1 is recognized as digit 1"):
+  test("a one-bit flip from digit 1 that forms digit 7 is recognized as digit 7"):
     // digit 1 = Vector(0, 1, 1, 0, 0, 0, 0), flip the top segment on
     val flipped =
       Vector(1, 1, 1, 0, 0, 0, 0)
@@ -90,21 +90,31 @@ object NearestCanonicalOracleSuite extends FunSuite:
     )
 
   test("a pattern equidistant to multiple canonical digits is ambiguous"):
-    // all segments off: distance to digit 1 (0,1,1,0,0,0,0) is 2,
-    // but let's find a truly ambiguous case from the corruption data
-    val ambiguousCorruptions =
-      CorruptionRecovery.ambiguous
+    val possibleSegmentPatterns =
+      1 << SevenSegment.Segment.values.size
 
-    // among two-candidate corruptions, check whether the oracle agrees
-    // that there are multiple near-equidistant canonical digits
-    val twoCandidate =
-      ambiguousCorruptions
-        .filter:
-          _.potentialCanonicalDigits.size == 2
+    val tiedPattern =
+      (0 until possibleSegmentPatterns)
+        .map: bits =>
+          SevenSegment
+            .Segment
+            .values
+            .indices
+            .map: i =>
+              // decode this integer into its seven on/off segment values
+              (bits >> i) & 1
+        .map: segments =>
+          segments.toVector
+        .find: segments =>
+          NearestCanonicalOracle.nearest(segments).size > 1
 
-    // at minimum, verify that patterns with multiple corruption sources
-    // can exist where Hamming distance reveals ties
-    expect(twoCandidate.nonEmpty)
+    expect.all(
+      tiedPattern.nonEmpty,
+      tiedPattern.forall: segments =>
+        !NearestCanonicalOracle.isUnambiguous(segments),
+      tiedPattern.forall: segments =>
+        NearestCanonicalOracle.predict(segments).isEmpty
+    )
 
   test("every unambiguous one-bit corruption is predicted as a canonical digit"):
     val predictions =
