@@ -25,6 +25,8 @@ object VecSuite extends FunSuite:
     expect.eql(32.0, product)
 
   test("maps each component"):
-    val mapped = Vec[Double, Three](Array(-1.0, 0.0, 2.0)).map(_ * 2.0)
+    val mapped =
+      Vec[Double, Three](Array(-1.0, 0.0, 2.0)).map:
+        _ * 2.0
 
     expect.eql(Vector(-2.0, 0.0, 4.0), mapped.values.toVector)

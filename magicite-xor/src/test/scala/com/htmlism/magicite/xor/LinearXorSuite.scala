@@ -36,11 +36,19 @@ object LinearXorSuite extends FunSuite:
             .values(0)
 
     val predictions =
-      probabilities.map(Xor.decodePrediction[Double])
+      probabilities.map:
+        Xor.decodePrediction[Double]
 
     println(s"Linear XOR probabilities: $probabilities")
 
-    expect(clue(predictions) != clue(Xor.truthTable.map(_.expected)))
+    expect(
+      clue(predictions) != clue(
+        Xor
+          .truthTable
+          .map:
+            _.expected
+      )
+    )
 
   private type Model =
     Network.Direct[Double, Xor.XorOperands, Xor.BooleanOutput]

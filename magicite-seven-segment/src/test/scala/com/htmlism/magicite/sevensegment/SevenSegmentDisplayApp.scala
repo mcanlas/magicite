@@ -9,7 +9,11 @@ package com.htmlism.magicite.sevensegment
 object SevenSegmentDisplayApp:
   def main(args: Array[String]): Unit =
     val inputs =
-      SevenSegment.canonicalDigits.map(_.segments.toArray).toArray
+      SevenSegment
+        .canonicalDigits
+        .map:
+          _.segments.toArray
+        .toArray
 
     printDisplays(inputs)
 

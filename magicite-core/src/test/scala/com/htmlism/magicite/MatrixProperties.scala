@@ -20,12 +20,14 @@ object MatrixProperties extends SimpleIOSuite with Checkers:
   private val matrixOfTwoByThree =
     Gen
       .listOfN(6, Gen.choose(-10.0, 10.0))
-      .map(values => Matrix[Double, Two, Three](values.toArray))
+      .map: values =>
+        Matrix[Double, Two, Three](values.toArray)
 
   private val vectorOfThree =
     Gen
       .listOfN(3, Gen.choose(-10.0, 10.0))
-      .map(values => Vec[Double, Three](values.toArray))
+      .map: values =>
+        Vec[Double, Three](values.toArray)
 
   private val matrixAndVectorPairs: Gen[(Matrix[Double, Two, Three], Vec[Double, Three], Vec[Double, Three])] =
     for

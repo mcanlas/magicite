@@ -15,7 +15,8 @@ object VecProperties extends SimpleIOSuite with Checkers:
   private val vectorOfThree =
     Gen
       .listOfN(3, Gen.choose(-100.0, 100.0))
-      .map(values => Vec[Double, Three](values.toArray))
+      .map: values =>
+        Vec[Double, Three](values.toArray)
 
   private val vectorPair: Gen[(Vec[Double, Three], Vec[Double, Three])] =
     for

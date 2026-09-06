@@ -52,7 +52,12 @@ object XorSuite extends FunSuite:
           clue(probabilities(1)) > 0.9,
           clue(probabilities(2)) > 0.9,
           clue(probabilities(3)) < 0.1,
-          clue(predictions) == clue(Xor.truthTable.map(_.expected))
+          clue(predictions) == clue(
+            Xor
+              .truthTable
+              .map:
+                _.expected
+          )
         )
       case _ => failure("expected at least one recorded epoch loss")
 
@@ -89,7 +94,12 @@ object XorSuite extends FunSuite:
           clue(probabilities(1)) > 0.9f,
           clue(probabilities(2)) > 0.9f,
           clue(probabilities(3)) < 0.1f,
-          clue(predictions) == clue(Xor.truthTable.map(_.expected))
+          clue(predictions) == clue(
+            Xor
+              .truthTable
+              .map:
+                _.expected
+          )
         )
       case _ => failure("expected at least one recorded epoch loss")
 
@@ -165,7 +175,11 @@ object XorSuite extends FunSuite:
     expect(clue(updatedLoss) < clue(initialLoss))
 
   private def meanLoss(network: Xor.Model[Double]): Double =
-    Xor.truthTable.map(rowLoss(network, _)).sum / Xor.truthTable.size
+    Xor
+      .truthTable
+      .map:
+        rowLoss(network, _)
+      .sum / Xor.truthTable.size
 
   private def rowLoss(network: Xor.Model[Double], row: Xor.TruthTableRow): Double =
     BinaryCrossEntropy.value(

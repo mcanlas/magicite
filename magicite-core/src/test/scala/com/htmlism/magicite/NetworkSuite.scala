@@ -138,7 +138,8 @@ object NetworkSuite extends FunSuite:
       Vector(math.tanh(1.0), math.tanh(0.5))
 
     val additionalOutputs =
-      firstOutputs.map(math.tanh)
+      firstOutputs.map:
+        math.tanh
 
     val outputPreActivation =
       additionalOutputs(0) - additionalOutputs(1) + 0.25

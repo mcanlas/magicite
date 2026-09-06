@@ -35,7 +35,8 @@ final case class DenseLayer[A, M: Dimension, N: Dimension](
     LayerForwardPass(
       input          = input,
       preActivations = preActivations,
-      outputs        = preActivations.map(activation.apply)
+      outputs        = preActivations.map:
+        activation.apply
     )
 
   /**
