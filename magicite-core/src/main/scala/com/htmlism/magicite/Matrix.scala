@@ -14,6 +14,9 @@ import cats.syntax.all.*
   *   The output dimension, with one coordinate for each matrix row
   * @tparam N
   *   The input dimension, with one coordinate for each matrix column
+  *
+  * @param values
+  *   Row-major scalar values, with one contiguous row per output coordinate
   */
 final case class Matrix[A, M: Dimension as rowDimension, N: Dimension as columnDimension](values: Array[A]):
   def rows: Int =

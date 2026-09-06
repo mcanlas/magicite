@@ -35,3 +35,19 @@ object DenseLayerSuite extends FunSuite:
       layer.biases.values.toVector == Vector(0.0, 0.0),
       layer.activation == Activation.Sigmoid
     )
+
+  test("records pre-activations and outputs for a forward pass"):
+    val layer =
+      DenseLayer(
+        weights    = Matrix[Double, Two, Three](Array(1.0, -1.0, 0.0, 0.0, 1.0, -1.0)),
+        biases     = Vec[Double, Two](Array(0.5, -0.5)),
+        activation = Activation.Tanh
+      )
+
+    val actual =
+      layer.forward(Vec[Double, Three](Array(1.0, 0.5, -0.5)))
+
+    expect.all(
+      actual.preActivations.values.toVector == Vector(1.0, 0.5),
+      actual.outputs.values.toVector == Vector(math.tanh(1.0), math.tanh(0.5))
+    )

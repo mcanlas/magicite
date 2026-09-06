@@ -24,6 +24,9 @@ object Network:
     *   The input dimension tag
     * @tparam O
     *   The output dimension tag
+    *
+    * @param output
+    *   The one dense layer that maps inputs directly to outputs
     */
   final case class Direct[A, I, O](
       output: DenseLayer[A, O, I]
@@ -40,6 +43,13 @@ object Network:
     *   The shared hidden-layer dimension tag
     * @tparam O
     *   The output dimension tag
+    *
+    * @param first
+    *   The first hidden layer, mapping `I` inputs to `D` outputs
+    * @param middle
+    *   Zero or more additional hidden layers, each mapping `D` to `D`
+    * @param output
+    *   The final dense layer that maps `D` hidden values to `O` outputs
     */
   final case class WithHidden[A, I, D, O](
       first: DenseLayer[A, D, I],
@@ -56,6 +66,7 @@ object Network:
     *   The activation applied by each hidden `D` layer
     * @param outputActivation
     *   The activation applied by the final output layer
+    *
     * @tparam A
     *   The real-valued scalar type used by the network parameters
     * @tparam I

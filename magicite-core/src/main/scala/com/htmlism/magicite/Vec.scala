@@ -7,6 +7,9 @@ package com.htmlism.magicite
   *   The scalar type stored in each coordinate
   * @tparam D
   *   The dimension that identifies this vector's coordinates
+  *
+  * @param values
+  *   Scalar values in coordinate order
   */
 final case class Vec[A, D: Dimension as dimension](values: Array[A]):
   require(
