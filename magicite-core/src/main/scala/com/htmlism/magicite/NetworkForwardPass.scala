@@ -32,7 +32,7 @@ object NetworkForwardPass:
     */
   final case class Direct[A, I, O](
       input: Vec[A, I],
-      outputPass: LayerForwardPass[A, O]
+      outputPass: LayerForwardPass[A, I, O]
   ) extends NetworkForwardPass[A, I, O]:
     def prediction: Vec[A, O] =
       outputPass.outputs
@@ -60,9 +60,9 @@ object NetworkForwardPass:
     */
   final case class WithHidden[A, I, D, O](
       input: Vec[A, I],
-      firstHidden: LayerForwardPass[A, D],
-      additionalHidden: Vector[LayerForwardPass[A, D]],
-      outputPass: LayerForwardPass[A, O]
+      firstHidden: LayerForwardPass[A, I, D],
+      additionalHidden: Vector[LayerForwardPass[A, D, D]],
+      outputPass: LayerForwardPass[A, D, O]
   ) extends NetworkForwardPass[A, I, O]:
     def prediction: Vec[A, O] =
       outputPass.outputs

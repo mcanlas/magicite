@@ -65,7 +65,7 @@ object Network:
         firstHidden.forward(input)
 
       val (additionalForwardPasses, finalHiddenOutput) =
-        additionalHidden.foldLeft(Vector.empty[LayerForwardPass[A, D]] -> firstForwardPass.outputs):
+        additionalHidden.foldLeft(Vector.empty[LayerForwardPass[A, D, D]] -> firstForwardPass.outputs):
           case ((forwardPasses, hiddenOutput), layer) =>
             val forwardPass =
               layer.forward(hiddenOutput)

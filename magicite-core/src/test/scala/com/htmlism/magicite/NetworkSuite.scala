@@ -104,6 +104,7 @@ object NetworkSuite extends FunSuite:
 
     expect.all(
       actual.input.values.toVector == Vector(1.0, 0.5, -0.5),
+      actual.outputPass.input.values.toVector == Vector(1.0, 0.5, -0.5),
       actual.outputPass.preActivations.values.toVector == Vector(1.0),
       actual.prediction.values.toVector == Vector(1.0 / (1.0 + math.exp(-1.0)))
     )
@@ -144,10 +145,13 @@ object NetworkSuite extends FunSuite:
 
     expect.all(
       actual.firstHidden.preActivations.values.toVector == Vector(1.0, 0.5),
+      actual.firstHidden.input.values.toVector == Vector(1.0, 0.5, -0.5),
       actual.firstHidden.outputs.values.toVector == firstOutputs,
       actual.additionalHidden.size == 1,
+      actual.additionalHidden(0).input.values.toVector == firstOutputs,
       actual.additionalHidden(0).preActivations.values.toVector == firstOutputs,
       actual.additionalHidden(0).outputs.values.toVector == additionalOutputs,
+      actual.outputPass.input.values.toVector == additionalOutputs,
       actual.outputPass.preActivations.values.toVector == Vector(outputPreActivation),
       actual.prediction.values.toVector == Vector(1.0 / (1.0 + math.exp(-outputPreActivation)))
     )

@@ -48,6 +48,7 @@ object DenseLayerSuite extends FunSuite:
       layer.forward(Vec[Double, Three](Array(1.0, 0.5, -0.5)))
 
     expect.all(
+      actual.input.values.toVector == Vector(1.0, 0.5, -0.5),
       actual.preActivations.values.toVector == Vector(1.0, 0.5),
       actual.outputs.values.toVector == Vector(math.tanh(1.0), math.tanh(0.5))
     )

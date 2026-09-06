@@ -28,11 +28,12 @@ final case class DenseLayer[A, M, N](
   )
 
   /** Runs the layer's affine transformation and activation for one input vector */
-  def forward(input: Vec[A, N])(using RealScalar[A]): LayerForwardPass[A, M] =
+  def forward(input: Vec[A, N])(using RealScalar[A]): LayerForwardPass[A, N, M] =
     val preActivations =
       weights.multiply(input) + biases
 
     LayerForwardPass(
+      input          = input,
       preActivations = preActivations,
       outputs        = preActivations.map(activation.apply)
     )
