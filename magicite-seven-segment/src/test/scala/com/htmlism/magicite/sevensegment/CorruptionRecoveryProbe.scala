@@ -3,19 +3,19 @@ package com.htmlism.magicite.sevensegment
 import scala.util.Random
 
 /**
-  * Explores whether optimization settings can make the fixed `7 → 16 → 10` classifier identify held-out corruptions.
+  * Explores optimization settings for causal source recovery from held-out one-bit corruptions.
   *
-  * Run with `sbt 'seven-segment/Test/runMain com.htmlism.magicite.sevensegment.SevenSegmentRobustnessProbe'`.
+  * Run with `sbt 'seven-segment/Test/runMain com.htmlism.magicite.sevensegment.CorruptionRecoveryProbe'`.
   *
   * Each run partitions unique unambiguous corruptions, trains on canonical digits plus that partition's training rows,
-  * and scores candidate-membership accuracy on its held-out rows. The report shows whether a configuration is merely
-  * lucky (`perfectRuns` is low) or robust across initializations and partitions.
+  * and scores source-recovery membership accuracy on its held-out rows. The report shows whether a configuration is
+  * merely lucky (`perfectRuns` is low) or robust across initializations and partitions.
   *
   * This is a hyperparameter probe, not an acceptance test. Do not choose a final configuration from this report and
   * then present the same held-out rows as an unbiased test result; reserve a final untouched test partition first. It
   * varies epochs and learning rate, but not architecture: hidden width remains the model's fixed sixteen neurons.
   */
-object SevenSegmentRobustnessProbe:
+object CorruptionRecoveryProbe:
   def main(args: Array[String]): Unit =
     val epochCounts =
       Vector(10, 50, 100, 250, 500, 1_000, 2_000)
@@ -61,17 +61,17 @@ object SevenSegmentRobustnessProbe:
       partitionSeed: Long
   ): Double =
     val partition =
-      SevenSegment
-        .partitionUnambiguousCorruptions(trainingFraction = 0.8)
+      CorruptionRecovery
+        .partition(trainingFraction = 0.8)
         .runA(Random(partitionSeed))
         .value
 
     val trained =
-      SevenSegment.trainCanonicalAndCorruptions(
+      CorruptionRecovery.train(
         initialNetwork = SevenSegment.initialize[Double](modelSeed),
         partition      = partition,
         epochCount     = epochCount,
         learningRate   = learningRate
       )
 
-    SevenSegment.evaluate(trained.network, partition.evaluation).potentialCanonicalAccuracy
+    CorruptionRecovery.evaluate(trained.network, partition.evaluation).potentialCanonicalAccuracy
