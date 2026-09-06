@@ -64,9 +64,9 @@ object CategoricalCrossEntropySuite extends FunSuite:
       logits
         .values
         .indices
-        .map: index =>
-          (loss(withLogit(logits, index, logits.values(index) + epsilon), target) -
-            loss(withLogit(logits, index, logits.values(index) - epsilon), target)) / (2.0 * epsilon)
+        .map: i =>
+          (loss(withLogit(logits, i, logits.values(i) + epsilon), target) -
+            loss(withLogit(logits, i, logits.values(i) - epsilon), target)) / (2.0 * epsilon)
 
     val matches =
       analytic

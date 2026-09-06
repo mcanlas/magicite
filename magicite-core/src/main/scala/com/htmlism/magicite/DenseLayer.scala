@@ -51,10 +51,10 @@ final case class DenseLayer[A, M: Dimension, N: Dimension](
       outputGradient: Vec[A, M]
   )(using scalar: RealScalar[A]): LayerBackwardPass[A, N, M] =
     val preActivationGradient =
-      Vec[A, M](scalar.tabulate(outputGradient.size): index =>
-        outputGradient.values(index) * activation.derivative(
-          forwardPass.preActivations.values(index),
-          forwardPass.outputs.values(index)
+      Vec[A, M](scalar.tabulate(outputGradient.size): i =>
+        outputGradient.values(i) * activation.derivative(
+          forwardPass.preActivations.values(i),
+          forwardPass.outputs.values(i)
         ))
 
     backwardFromPreActivation(forwardPass, preActivationGradient)
@@ -94,10 +94,10 @@ final case class DenseLayer[A, M: Dimension, N: Dimension](
       learningRate: A
   )(using scalar: RealScalar[A]): DenseLayer[A, M, N] =
     DenseLayer(
-      weights = Matrix[A, M, N](scalar.tabulate(weights.values.length): index =>
-        weights.values(index) - learningRate * gradients.weightGradients.values(index)),
-      biases = Vec[A, M](scalar.tabulate(biases.values.length): index =>
-        biases.values(index) - learningRate * gradients.biasGradients.values(index)),
+      weights = Matrix[A, M, N](scalar.tabulate(weights.values.length): i =>
+        weights.values(i) - learningRate * gradients.weightGradients.values(i)),
+      biases = Vec[A, M](scalar.tabulate(biases.values.length): i =>
+        biases.values(i) - learningRate * gradients.biasGradients.values(i)),
       activation = activation
     )
 

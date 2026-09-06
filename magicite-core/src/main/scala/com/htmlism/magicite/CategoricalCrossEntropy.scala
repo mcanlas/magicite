@@ -21,15 +21,15 @@ object CategoricalCrossEntropy:
     target
       .values
       .indices
-      .foldLeft(scalar.zero): (loss, index) =>
-        loss - target.values(index) * scalar.log(probabilities.values(index))
+      .foldLeft(scalar.zero): (loss, i) =>
+        loss - target.values(i) * scalar.log(probabilities.values(i))
 
   /** Computes the loss derivative with respect to each predicted class probability */
   def predictionDerivative[A: RealScalar as scalar, D: Dimension](
       target: Vec[A, D],
       probabilities: Vec[A, D]
   ): Vec[A, D] =
-    Vec[A, D](scalar.tabulate(target.size)(index => -target.values(index) / probabilities.values(index)))
+    Vec[A, D](scalar.tabulate(target.size)(i => -target.values(i) / probabilities.values(i)))
 
   /**
     * Computes the combined derivative of categorical cross-entropy and softmax with respect to each logit.
@@ -41,4 +41,4 @@ object CategoricalCrossEntropy:
       target: Vec[A, D],
       probabilities: Vec[A, D]
   ): Vec[A, D] =
-    Vec[A, D](scalar.tabulate(target.size)(index => probabilities.values(index) - target.values(index)))
+    Vec[A, D](scalar.tabulate(target.size)(i => probabilities.values(i) - target.values(i)))

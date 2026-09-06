@@ -85,12 +85,12 @@ object Matrix:
       left: Vec[A, M],
       right: Vec[A, N]
   ): Matrix[A, M, N] =
-    Matrix[A, M, N](scalar.tabulate(rowDimension.size * columnDimension.size): index =>
+    Matrix[A, M, N](scalar.tabulate(rowDimension.size * columnDimension.size): i =>
       val row =
-        index / columnDimension.size
+        i / columnDimension.size
 
       val column =
-        index % columnDimension.size
+        i % columnDimension.size
 
       left.values(row) * right.values(column))
 

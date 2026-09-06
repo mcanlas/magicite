@@ -22,10 +22,10 @@ object Softmax:
       logits.values.foldLeft(logits.values(0))(scalar.maximum)
 
     val exponentials =
-      scalar.tabulate(logits.size): index =>
-        scalar.exp(logits.values(index) - maximum)
+      scalar.tabulate(logits.size): i =>
+        scalar.exp(logits.values(i) - maximum)
 
     val denominator =
       exponentials.foldLeft(scalar.zero)(scalar.add)
 
-    Vec[A, D](scalar.tabulate(logits.size)(index => exponentials(index) / denominator))
+    Vec[A, D](scalar.tabulate(logits.size)(i => exponentials(i) / denominator))
