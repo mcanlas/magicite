@@ -3,7 +3,7 @@ package com.htmlism.magicite.sevensegment
 /**
   * A test-scope console renderer for inspecting clean or corrupted seven-segment inputs.
   *
-  * Run with `sbt 'sevenSegment/Test/runMain com.htmlism.magicite.sevensegment.SevenSegmentDisplayApp'`. Replace
+  * Run with `sbt 'seven-segment/Test/runMain com.htmlism.magicite.sevensegment.SevenSegmentDisplayApp'`. Replace
   * `inputs` in `main` with any `Array[Array[Int]]` of seven binary values to inspect other glyphs.
   */
 object SevenSegmentDisplayApp:
