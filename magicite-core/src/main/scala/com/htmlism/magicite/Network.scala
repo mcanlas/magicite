@@ -44,24 +44,49 @@ object Network:
     * @tparam O
     *   The output dimension tag
     *
-    * @param first
+    * @param firstHidden
     *   The first hidden layer, mapping `I` inputs to `D` outputs
-    * @param middle
+    * @param additionalHidden
     *   Zero or more additional hidden layers, each mapping `D` to `D`
     * @param output
     *   The final dense layer that maps `D` hidden values to `O` outputs
     */
   final case class WithHidden[A, I, D, O](
-      first: DenseLayer[A, D, I],
-      middle: Vector[DenseLayer[A, D, D]],
+      firstHidden: DenseLayer[A, D, I],
+      additionalHidden: Vector[DenseLayer[A, D, D]],
       output: DenseLayer[A, O, D]
   ) extends Network[A, I, O]
 
   /**
-    * Initializes a direct network for zero hidden layers, or a network whose hidden layers all use tag `D`
+    * Initializes a network with no hidden layers
     *
+    * @param initialization
+    *   The policy that draws the output-layer weights
+    * @param outputActivation
+    *   The activation applied by the final output layer
+    *
+    * @tparam A
+    *   The real-valued scalar type used by the network parameters
+    * @tparam I
+    *   The input dimension tag
+    * @tparam O
+    *   The output dimension tag
+    */
+  def direct[A: RealScalar, I: Dimension, O: Dimension](
+      initialization: Initialization,
+      outputActivation: Activation
+  ): Rng[Direct[A, I, O]] =
+    for output <- DenseLayer
+        .initialize[A, O, I](initialization, outputActivation)
+    yield Direct(output)
+
+  /**
+    * Initializes a network with an `I → D → O` path and optional additional `D → D` hidden layers
+    *
+    * @param initialization
+    *   The policy that draws all layer weights
     * @param hiddenLayerCount
-    *   The number of hidden `D` layers, which must be non-negative
+    *   The total number of hidden `D` layers, which must be positive
     * @param hiddenActivation
     *   The activation applied by each hidden `D` layer
     * @param outputActivation
@@ -76,28 +101,25 @@ object Network:
     * @tparam O
     *   The output dimension tag
     */
-  def initialize[A: RealScalar, I: Dimension, D: Dimension, O: Dimension](
+  def withHidden[A: RealScalar, I: Dimension, D: Dimension, O: Dimension](
       initialization: Initialization,
       hiddenLayerCount: Int,
       hiddenActivation: Activation,
       outputActivation: Activation
-  ): Rng[Network[A, I, O]] =
-    require(hiddenLayerCount >= 0, s"hidden layer count must be non-negative, but was $hiddenLayerCount")
+  ): Rng[WithHidden[A, I, D, O]] =
+    require(
+      hiddenLayerCount > 0,
+      s"hidden layer count must be positive, but was $hiddenLayerCount"
+    )
 
-    if hiddenLayerCount == 0 then
-      for output <- DenseLayer
-          .initialize[A, O, I](initialization, outputActivation)
-      yield Direct(output)
+    for
+      firstHidden <- DenseLayer
+        .initialize[A, D, I](initialization, hiddenActivation)
 
-    else
-      for
-        first <- DenseLayer
-          .initialize[A, D, I](initialization, hiddenActivation)
+      additionalHidden <- Vector
+        .fill(hiddenLayerCount - 1)(DenseLayer.initialize[A, D, D](initialization, hiddenActivation))
+        .sequence
 
-        middle <- Vector
-          .fill(hiddenLayerCount - 1)(DenseLayer.initialize[A, D, D](initialization, hiddenActivation))
-          .sequence
-
-        output <- DenseLayer
-          .initialize[A, O, D](initialization, outputActivation)
-      yield WithHidden(first, middle, output)
+      output <- DenseLayer
+        .initialize[A, O, D](initialization, outputActivation)
+    yield WithHidden(firstHidden, additionalHidden, output)
