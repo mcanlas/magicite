@@ -12,7 +12,9 @@ import cats.syntax.all.*
   * @tparam O
   *   The output dimension tag
   */
-sealed trait Network[A, I, O]
+sealed trait Network[A, I, O]:
+  /** Runs every layer for one input vector and records the intermediate values */
+  def forward(input: Vec[A, I])(using RealScalar[A]): NetworkForwardPass[A, I, O]
 
 object Network:
   /**
@@ -30,7 +32,9 @@ object Network:
     */
   final case class Direct[A, I, O](
       output: DenseLayer[A, O, I]
-  ) extends Network[A, I, O]
+  ) extends Network[A, I, O]:
+    def forward(input: Vec[A, I])(using RealScalar[A]): NetworkForwardPass.Direct[A, I, O] =
+      NetworkForwardPass.Direct(input, output.forward(input))
 
   /**
     * A network with one or more `D`-tagged hidden layers
@@ -55,7 +59,25 @@ object Network:
       firstHidden: DenseLayer[A, D, I],
       additionalHidden: Vector[DenseLayer[A, D, D]],
       output: DenseLayer[A, O, D]
-  ) extends Network[A, I, O]
+  ) extends Network[A, I, O]:
+    def forward(input: Vec[A, I])(using RealScalar[A]): NetworkForwardPass.WithHidden[A, I, D, O] =
+      val firstForwardPass =
+        firstHidden.forward(input)
+
+      val (additionalForwardPasses, finalHiddenOutput) =
+        additionalHidden.foldLeft(Vector.empty[LayerForwardPass[A, D]] -> firstForwardPass.outputs):
+          case ((forwardPasses, hiddenOutput), layer) =>
+            val forwardPass =
+              layer.forward(hiddenOutput)
+
+            (forwardPasses :+ forwardPass) -> forwardPass.outputs
+
+      NetworkForwardPass.WithHidden(
+        input            = input,
+        firstHidden      = firstForwardPass,
+        additionalHidden = additionalForwardPasses,
+        outputPass       = output.forward(finalHiddenOutput)
+      )
 
   /**
     * Initializes a network with no hidden layers
